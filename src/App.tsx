@@ -31,57 +31,59 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Welcome />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/onboarding" element={
-              <ProtectedRoute>
-                <Onboarding />
-              </ProtectedRoute>
-            } />
-            <Route path="/home" element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            } />
-            <Route path="/feed" element={
-              <ProtectedRoute>
-                <Feed />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/messages" element={
-              <ProtectedRoute>
-                <Messages />
-              </ProtectedRoute>
-            } />
-            <Route path="/messages/:id" element={
-              <ProtectedRoute>
-                <ChatRoom />
-              </ProtectedRoute>
-            } />
-            <Route path="/favorites" element={
-              <ProtectedRoute>
-                <Favorites />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } />
-            <Route path="/match/:id" element={
-              <ProtectedRoute>
-                <MatchScreen />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <div className="min-h-screen">
+            <Routes>
+              <Route path="/" element={<Welcome />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/onboarding" element={
+                <ProtectedRoute>
+                  <Onboarding />
+                </ProtectedRoute>
+              } />
+              <Route path="/home" element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              } />
+              <Route path="/feed" element={
+                <ProtectedRoute>
+                  <Feed />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/messages" element={
+                <ProtectedRoute>
+                  <Messages />
+                </ProtectedRoute>
+              } />
+              <Route path="/messages/:id" element={
+                <ProtectedRoute>
+                  <ChatRoom />
+                </ProtectedRoute>
+              } />
+              <Route path="/favorites" element={
+                <ProtectedRoute>
+                  <Favorites />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="/match/:id" element={
+                <ProtectedRoute>
+                  <MatchScreen />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

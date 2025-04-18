@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Mock apartment data
 const mockApartments: Apartment[] = [
@@ -79,6 +79,7 @@ const Feed = () => {
   const [priceRange, setPriceRange] = useState([500, 5000]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [location, setLocation] = useState("");
+  const isMobile = useIsMobile();
   
   // Mock loading apartments
   useEffect(() => {
@@ -108,31 +109,31 @@ const Feed = () => {
   ];
   
   return (
-    <div className="min-h-screen pb-16">
-      <header className="sticky top-0 z-10 bg-white border-b shadow-sm p-4 dark:bg-gray-900">
+    <div className="min-h-screen pb-16 md:pb-0 overflow-x-hidden">
+      <header className="sticky top-0 z-10 bg-white border-b shadow-sm p-3 md:p-4 dark:bg-gray-900">
         <div className="flex items-center justify-between max-w-screen-lg mx-auto">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Discover
           </h1>
           
           <div className="flex items-center gap-2">
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <div className="relative w-full max-w-[140px] sm:max-w-xs md:max-w-sm">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3.5 w-3.5 md:h-4 md:w-4" />
               <Input 
-                placeholder="Search by location..." 
+                placeholder="Search location..." 
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="pl-9"
+                className="pl-7 md:pl-9 h-8 md:h-10 text-sm md:text-base"
               />
             </div>
             
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <SlidersHorizontal className="h-4 w-4" />
+                <Button variant="outline" size="icon" className="h-8 w-8 md:h-10 md:w-10">
+                  <SlidersHorizontal className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent>
+              <SheetContent className="overflow-y-auto max-h-screen">
                 <SheetHeader>
                   <SheetTitle>Filters</SheetTitle>
                 </SheetHeader>
@@ -222,14 +223,14 @@ const Feed = () => {
         </div>
       </header>
       
-      <main className="py-6 px-4 flex flex-col items-center justify-center">
+      <main className="py-4 md:py-6 px-3 md:px-4 flex flex-col items-center justify-center max-w-screen-xl mx-auto overflow-y-auto">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-80">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <div className="flex flex-col items-center justify-center h-60 md:h-80">
+            <Loader2 className="h-10 w-10 md:h-12 md:w-12 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">Finding your next home...</p>
           </div>
         ) : apartments.length > 0 ? (
-          <div className="relative w-full max-w-sm">
+          <div className="relative w-full max-w-xs sm:max-w-sm">
             {apartments.map((apartment, index) => (
               <div 
                 key={apartment.id} 
@@ -258,12 +259,12 @@ const Feed = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center text-center h-80 max-w-sm">
-            <div className="bg-primary/10 p-4 rounded-full mb-4">
-              <Search className="h-8 w-8 text-primary" />
+          <div className="flex flex-col items-center justify-center text-center h-60 md:h-80 max-w-sm">
+            <div className="bg-primary/10 p-3 md:p-4 rounded-full mb-3 md:mb-4">
+              <Search className="h-6 w-6 md:h-8 md:w-8 text-primary" />
             </div>
-            <h3 className="text-xl font-bold mb-2">No more apartments</h3>
-            <p className="text-muted-foreground mb-6">
+            <h3 className="text-lg md:text-xl font-bold mb-2">No more apartments</h3>
+            <p className="text-sm md:text-base text-muted-foreground mb-4 md:mb-6">
               You've seen all available apartments matching your criteria. Try adjusting your filters or check back later.
             </p>
             <Button 

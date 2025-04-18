@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { motion, PanInfo, useMotionValue, useTransform, useDragControls } from 'framer-motion';
 import { X, Heart } from 'lucide-react';
 import ApartmentCard, { Apartment } from './ApartmentCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SwipeCardProps {
   apartment: Apartment;
@@ -12,6 +13,7 @@ interface SwipeCardProps {
 const SwipeCard: React.FC<SwipeCardProps> = ({ apartment, onSwipe }) => {
   const [exitX, setExitX] = useState<number | null>(null);
   const dragControls = useDragControls();
+  const isMobile = useIsMobile();
   
   // Motion values for the drag
   const x = useMotionValue(0);
@@ -34,6 +36,9 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ apartment, onSwipe }) => {
       onSwipe('left');
     }
   };
+
+  // Determine icon size based on device
+  const iconSize = isMobile ? 24 : 32;
   
   return (
     <motion.div
@@ -42,7 +47,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ apartment, onSwipe }) => {
         rotate,
         position: 'relative',
         width: '100%',
-        maxWidth: '24rem',
+        maxWidth: isMobile ? '20rem' : '24rem',
         margin: '0 auto',
       }}
       drag="x"
@@ -56,24 +61,24 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ apartment, onSwipe }) => {
     >
       {/* Left swipe action indicator */}
       <motion.div 
-        className="absolute left-5 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-destructive font-bold z-10"
+        className="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-destructive font-bold z-10"
         style={{ opacity: leftActionOpacity }}
       >
-        <div className="bg-white/90 rounded-full p-3 shadow-lg">
-          <X size={32} className="text-destructive" />
+        <div className="bg-white/90 rounded-full p-2 md:p-3 shadow-lg">
+          <X size={iconSize} className="text-destructive" />
         </div>
-        <span className="mt-2 bg-white/90 px-2 py-1 rounded-md shadow-md">PASS</span>
+        <span className="mt-1 md:mt-2 bg-white/90 px-1.5 py-0.5 md:px-2 md:py-1 rounded-md shadow-md text-xs md:text-sm">PASS</span>
       </motion.div>
       
       {/* Right swipe action indicator */}
       <motion.div 
-        className="absolute right-5 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-primary font-bold z-10"
+        className="absolute right-3 md:right-5 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-primary font-bold z-10"
         style={{ opacity: rightActionOpacity }}
       >
-        <div className="bg-white/90 rounded-full p-3 shadow-lg">
-          <Heart size={32} className="text-primary" />
+        <div className="bg-white/90 rounded-full p-2 md:p-3 shadow-lg">
+          <Heart size={iconSize} className="text-primary" />
         </div>
-        <span className="mt-2 bg-white/90 px-2 py-1 rounded-md shadow-md">LIKE</span>
+        <span className="mt-1 md:mt-2 bg-white/90 px-1.5 py-0.5 md:px-2 md:py-1 rounded-md shadow-md text-xs md:text-sm">LIKE</span>
       </motion.div>
       
       {/* Apartment Card */}

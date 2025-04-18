@@ -75,6 +75,25 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  /* Mobile friendly tap targets */
+  button, a, input, select, textarea, [role="button"] {
+    @apply touch-manipulation;
+  }
+
+  /* Basic responsive font sizing */
+  h1 {
+    @apply text-xl md:text-2xl lg:text-3xl font-bold;
+  }
+  h2 {
+    @apply text-lg md:text-xl lg:text-2xl font-bold;
+  }
+  h3 {
+    @apply text-base md:text-lg font-bold;
+  }
+  p {
+    @apply text-sm md:text-base;
+  }
 }
 
 @layer utilities {
@@ -97,6 +116,30 @@
   .swipe-action-right {
     @apply absolute top-5 right-5 bg-primary text-white px-4 py-2 rounded-full font-bold border-2 border-white transform rotate-12 opacity-0 transition-opacity duration-200;
   }
+  
+  /* Custom responsive grid */
+  .responsive-grid {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+  
+  /* Touch-friendly form elements */
+  .touch-input {
+    @apply h-12 md:h-10 px-4 py-2 text-base;
+  }
+  
+  .touch-button {
+    @apply min-h-[44px] px-4;
+  }
+  
+  /* Prevent overflow issues on mobile */
+  .mobile-safe {
+    @apply max-w-[100vw] overflow-x-hidden;
+  }
+  
+  /* Safe area insets for mobile devices with notches */
+  .safe-padding {
+    @apply pt-safe-top pb-safe-bottom pl-safe-left pr-safe-right;
+  }
 }
 
 /* Custom animations */
@@ -114,4 +157,29 @@
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+}
+
+/* Better mobile scrolling */
+html, body {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Responsive media queries */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Ensure smooth animations on all devices */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

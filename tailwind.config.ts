@@ -15,6 +15,10 @@ export default {
 			center: true,
 			padding: '1rem',
 			screens: {
+				'sm': '640px',
+				'md': '768px',
+				'lg': '1024px',
+				'xl': '1280px',
 				'2xl': '1400px'
 			}
 		},
@@ -151,7 +155,13 @@ export default {
 				'fade-in': 'fade-in 0.3s ease-out',
 				'fade-out': 'fade-out 0.3s ease-out',
 				'pulse-scale': 'pulse-scale 2s ease-in-out infinite'
-			}
+			},
+			spacing: {
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-bottom': 'env(safe-area-inset-bottom)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

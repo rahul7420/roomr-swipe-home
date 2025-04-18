@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/use-toast';
 import { Loader2, Camera, DollarSign, User, Home, LogOut, PlusCircle, X } from 'lucide-react';
 import NavBar from '@/components/NavBar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const preferenceOptions = [
   "Non-smoker", 
@@ -37,6 +38,7 @@ const Profile = () => {
   const [preferences, setPreferences] = useState<string[]>([]);
   const [moveInDate, setMoveInDate] = useState('');
   const [notifications, setNotifications] = useState(true);
+  const isMobile = useIsMobile();
   
   const getInitials = (name: string) => {
     return name
@@ -80,52 +82,53 @@ const Profile = () => {
   };
   
   return (
-    <div className="min-h-screen pb-16">
-      <header className="bg-gradient-to-br from-primary to-secondary p-6 text-white">
+    <div className="min-h-screen pb-16 md:pb-0 overflow-x-hidden">
+      <header className="bg-gradient-to-br from-primary to-secondary p-4 md:p-6 text-white">
         <div className="flex flex-col items-center justify-center">
-          <div className="relative mb-4">
-            <Avatar className="h-20 w-20 border-4 border-white">
+          <div className="relative mb-3 md:mb-4">
+            <Avatar className="h-16 w-16 md:h-20 md:w-20 border-4 border-white">
               <AvatarImage src="/profile-placeholder.jpg" alt={name} />
-              <AvatarFallback className="text-lg bg-secondary">
+              <AvatarFallback className="text-base md:text-lg bg-secondary">
                 {name ? getInitials(name) : <User />}
               </AvatarFallback>
             </Avatar>
             <Button 
               size="icon" 
               variant="secondary" 
-              className="absolute -bottom-2 -right-2 rounded-full h-8 w-8"
+              className="absolute -bottom-1.5 -right-1.5 md:-bottom-2 md:-right-2 rounded-full h-6 w-6 md:h-8 md:w-8"
             >
-              <Camera className="h-4 w-4" />
+              <Camera className="h-3 w-3 md:h-4 md:w-4" />
             </Button>
           </div>
-          <h1 className="text-xl font-bold">{name || 'Your Profile'}</h1>
-          <p className="text-sm opacity-90">{user?.email}</p>
+          <h1 className="text-lg md:text-xl font-bold">{name || 'Your Profile'}</h1>
+          <p className="text-xs md:text-sm opacity-90">{user?.email}</p>
         </div>
       </header>
       
-      <main className="p-4 max-w-screen-lg mx-auto">
-        <div className="space-y-6">
+      <main className="p-3 md:p-4 max-w-screen-lg mx-auto overflow-y-auto">
+        <div className="space-y-5 md:space-y-6">
           <div>
-            <h2 className="text-lg font-medium mb-4">Personal Information</h2>
-            <div className="space-y-4">
-              <div className="space-y-2">
+            <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">Personal Information</h2>
+            <div className="space-y-3 md:space-y-4">
+              <div className="space-y-1.5 md:space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input 
                   id="name" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)} 
                   placeholder="Your name"
+                  className="text-sm md:text-base"
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 <Label htmlFor="bio">Bio</Label>
                 <Textarea 
                   id="bio" 
                   value={bio} 
                   onChange={(e) => setBio(e.target.value)} 
                   placeholder="Tell potential roommates about yourself..."
-                  className="resize-none"
+                  className="resize-none text-sm md:text-base"
                   rows={4}
                 />
               </div>
@@ -135,11 +138,11 @@ const Profile = () => {
           <Separator />
           
           <div>
-            <h2 className="text-lg font-medium mb-4">Roommate Preferences</h2>
-            <div className="space-y-4">
-              <div className="space-y-2">
+            <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">Roommate Preferences</h2>
+            <div className="space-y-3 md:space-y-4">
+              <div className="space-y-1.5 md:space-y-2">
                 <Label>Monthly Budget Range</Label>
-                <div className="pt-6 px-2">
+                <div className="pt-5 md:pt-6 px-2">
                   <Slider 
                     value={budgetRange} 
                     min={500} 
@@ -148,54 +151,55 @@ const Profile = () => {
                     onValueChange={setBudgetRange}
                   />
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs md:text-sm">
                   <div className="flex items-center">
-                    <DollarSign className="h-3 w-3 mr-1" />
+                    <DollarSign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
                     <span>{budgetRange[0]}</span>
                   </div>
                   <div className="flex items-center">
-                    <DollarSign className="h-3 w-3 mr-1" />
+                    <DollarSign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
                     <span>{budgetRange[1]}</span>
                   </div>
                 </div>
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 <Label htmlFor="moveInDate">Preferred Move-in Date</Label>
                 <Input 
                   id="moveInDate" 
                   type="date" 
                   value={moveInDate} 
                   onChange={(e) => setMoveInDate(e.target.value)} 
+                  className="text-sm md:text-base"
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 <Label>Roommate Preferences</Label>
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className="flex flex-wrap gap-1.5 md:gap-2 mb-1.5 md:mb-2">
                   {preferences.map(preference => (
-                    <Badge key={preference} className="flex items-center gap-1 pl-2">
+                    <Badge key={preference} className="flex items-center gap-1 pl-1.5 md:pl-2 text-[10px] md:text-xs">
                       {preference}
                       <button 
                         onClick={() => handleRemovePreference(preference)}
                         className="ml-1 hover:bg-primary-foreground rounded-full"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-2.5 w-2.5 md:h-3 md:w-3" />
                       </button>
                     </Badge>
                   ))}
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 md:gap-2">
                   {preferenceOptions
                     .filter(option => !preferences.includes(option))
                     .map(option => (
                       <Badge 
                         key={option} 
                         variant="outline" 
-                        className="cursor-pointer hover:bg-secondary/10"
+                        className="cursor-pointer hover:bg-secondary/10 text-[10px] md:text-xs"
                         onClick={() => handleAddPreference(option)}
                       >
-                        <PlusCircle className="h-3 w-3 mr-1" />
+                        <PlusCircle className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
                         {option}
                       </Badge>
                     ))}
@@ -207,12 +211,12 @@ const Profile = () => {
           <Separator />
           
           <div>
-            <h2 className="text-lg font-medium mb-4">Settings</h2>
-            <div className="space-y-4">
+            <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">Settings</h2>
+            <div className="space-y-3 md:space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="notifications">Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-[10px] md:text-sm text-muted-foreground">
                     Receive notifications for new matches and messages
                   </p>
                 </div>
@@ -225,27 +229,31 @@ const Profile = () => {
             </div>
           </div>
           
-          <div className="flex flex-col gap-3 pt-4">
+          <div className="flex flex-col gap-2 md:gap-3 pt-3 md:pt-4">
             <Button 
               onClick={handleSaveProfile}
-              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 h-9 md:h-10 text-sm md:text-base"
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Home className="mr-2 h-4 w-4" />
+                  <Home className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
                   Save Profile
                 </>
               )}
             </Button>
             
-            <Button variant="outline" onClick={logout}>
-              <LogOut className="mr-2 h-4 w-4" />
+            <Button 
+              variant="outline" 
+              onClick={logout}
+              className="h-9 md:h-10 text-sm md:text-base"
+            >
+              <LogOut className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
               Logout
             </Button>
           </div>
