@@ -1,6 +1,6 @@
 
 import { useState, useRef } from 'react';
-import { motion, PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { motion, PanInfo, useMotionValue, useTransform, useDragControls } from 'framer-motion';
 import { X, Heart } from 'lucide-react';
 import ApartmentCard, { Apartment } from './ApartmentCard';
 
@@ -11,7 +11,7 @@ interface SwipeCardProps {
 
 const SwipeCard: React.FC<SwipeCardProps> = ({ apartment, onSwipe }) => {
   const [exitX, setExitX] = useState<number | null>(null);
-  const dragControls = useRef(0);
+  const dragControls = useDragControls();
   
   // Motion values for the drag
   const x = useMotionValue(0);
