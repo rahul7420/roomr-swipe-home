@@ -16,6 +16,11 @@ import Home from "./pages/Home";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import Messages from "./pages/Messages";
+import ChatRoom from "./pages/ChatRoom";
+import Favorites from "./pages/Favorites";
+import Settings from "./pages/Settings";
+import MatchScreen from "./pages/MatchScreen";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +53,31 @@ const App = () => (
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/messages" element={
+              <ProtectedRoute>
+                <Messages />
+              </ProtectedRoute>
+            } />
+            <Route path="/messages/:id" element={
+              <ProtectedRoute>
+                <ChatRoom />
+              </ProtectedRoute>
+            } />
+            <Route path="/favorites" element={
+              <ProtectedRoute>
+                <Favorites />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/match/:id" element={
+              <ProtectedRoute>
+                <MatchScreen />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

@@ -11,7 +11,7 @@ interface SwipeCardProps {
 
 const SwipeCard: React.FC<SwipeCardProps> = ({ apartment, onSwipe }) => {
   const [exitX, setExitX] = useState<number | null>(null);
-  const dragControls = useDragControls(); // Correctly initialized drag controls
+  const dragControls = useDragControls();
   
   // Motion values for the drag
   const x = useMotionValue(0);
@@ -52,23 +52,28 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ apartment, onSwipe }) => {
       animate={exitX !== null ? { x: exitX } : undefined}
       transition={exitX !== null ? { duration: 0.2 } : undefined}
       whileTap={{ scale: 0.98 }}
+      className="touch-manipulation"
     >
       {/* Left swipe action indicator */}
       <motion.div 
-        className="swipe-action-left"
+        className="absolute left-5 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-destructive font-bold z-10"
         style={{ opacity: leftActionOpacity }}
       >
-        <X size={24} />
-        PASS
+        <div className="bg-white/90 rounded-full p-3 shadow-lg">
+          <X size={32} className="text-destructive" />
+        </div>
+        <span className="mt-2 bg-white/90 px-2 py-1 rounded-md shadow-md">PASS</span>
       </motion.div>
       
       {/* Right swipe action indicator */}
       <motion.div 
-        className="swipe-action-right"
+        className="absolute right-5 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-primary font-bold z-10"
         style={{ opacity: rightActionOpacity }}
       >
-        <Heart size={24} />
-        LIKE
+        <div className="bg-white/90 rounded-full p-3 shadow-lg">
+          <Heart size={32} className="text-primary" />
+        </div>
+        <span className="mt-2 bg-white/90 px-2 py-1 rounded-md shadow-md">LIKE</span>
       </motion.div>
       
       {/* Apartment Card */}
