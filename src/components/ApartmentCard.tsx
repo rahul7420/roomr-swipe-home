@@ -79,7 +79,7 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
   const priceInINR = Math.round(apartment.price * 75);
   const formattedPrice = priceInINR.toLocaleString('en-IN');
 
-  const imageHeight = isMobile ? "h-56" : "h-64";
+  const imageHeight = isMobile ? "h-[80vh]" : "h-[85vh]";
 
   return (
     <Card className="swipe-card w-full overflow-hidden">
@@ -94,9 +94,8 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
           style={{ backgroundImage: `url(${apartment.images[currentImageIndex]})` }} 
         />
         
-        <div className="absolute top-2 right-2">
-          <Badge className="bg-primary text-primary-foreground font-semibold px-2 py-1 text-sm">
-            <DollarSign className="h-3.5 w-3.5 mr-1" />
+        <div className="absolute top-4 right-4">
+          <Badge className="bg-primary/90 backdrop-blur-sm text-primary-foreground font-semibold px-3 py-1.5 text-sm">
             ₹{formattedPrice}/mo
           </Badge>
         </div>
@@ -132,44 +131,46 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
         )}
       </div>
       
-      <CardContent className="p-3 md:p-4">
-        <h3 className="font-bold text-base md:text-lg mb-1 line-clamp-1">{apartment.title}</h3>
+      <CardContent className="absolute bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm p-4 md:p-6">
+        <h3 className="font-bold text-lg md:text-xl mb-2">{apartment.title}</h3>
         
-        <div className="flex items-center text-muted-foreground text-xs md:text-sm mb-2">
-          <MapPin className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+        <div className="flex items-center text-muted-foreground text-sm md:text-base mb-3">
+          <MapPin className="h-4 w-4 md:h-5 md:w-5 mr-1.5" />
           <span>{apartment.location}, {apartment.city}</span>
         </div>
         
-        <div className="grid grid-cols-3 gap-1 md:gap-2 mb-2 md:mb-3">
-          <div className="flex items-center text-xs md:text-sm">
-            <BedDouble className="h-3 w-3 md:h-4 md:w-4 mr-0.5 md:mr-1 text-primary" />
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="flex items-center text-sm md:text-base">
+            <BedDouble className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-primary" />
             <span>{apartment.bedrooms} {apartment.bedrooms === 1 ? 'Bed' : 'Beds'}</span>
           </div>
-          <div className="flex items-center text-xs md:text-sm">
-            <Home className="h-3 w-3 md:h-4 md:w-4 mr-0.5 md:mr-1 text-primary" />
+          <div className="flex items-center text-sm md:text-base">
+            <Home className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-primary" />
             <span>{apartment.bathrooms} {apartment.bathrooms === 1 ? 'Bath' : 'Baths'}</span>
           </div>
-          <div className="flex items-center text-xs md:text-sm">
-            <span className="font-medium text-primary mr-0.5 md:mr-1">{apartment.size}</span>
+          <div className="flex items-center text-sm md:text-base">
+            <span className="font-medium text-primary mr-1.5">{apartment.size}</span>
             <span>sq ft</span>
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-1 mb-2 md:mb-3">
+        <div className="flex flex-wrap gap-2 mb-3">
           {apartment.amenities.slice(0, 3).map((amenity, index) => (
-            <Badge key={index} variant="secondary" className="text-[10px] md:text-xs">
-              {amenity === 'Wifi' && <Wifi className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />}
+            <Badge key={index} variant="secondary" className="text-xs md:text-sm px-2 py-1">
+              {amenity === 'Wifi' && <Wifi className="h-3 w-3 md:h-4 md:w-4 mr-1.5" />}
               {amenity}
             </Badge>
           ))}
           {apartment.amenities.length > 3 && (
-            <Badge variant="outline" className="text-[10px] md:text-xs">
+            <Badge variant="outline" className="text-xs md:text-sm">
               +{apartment.amenities.length - 3} more
             </Badge>
           )}
         </div>
         
-        <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">{apartment.description}</p>
+        <p className="text-sm md:text-base text-muted-foreground line-clamp-2">
+          {apartment.description}
+        </p>
       </CardContent>
     </Card>
   );

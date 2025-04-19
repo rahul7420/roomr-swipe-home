@@ -293,153 +293,155 @@ const Feed = () => {
   ];
   
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b p-3 md:p-4 dark:bg-gray-900/80">
-        <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-4">
-          <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Discover
-          </h1>
-          
-          <div className="flex items-center gap-2 flex-1 max-w-md">
-            <div className="relative w-full">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input 
-                placeholder="Search location..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-10"
-              />
-              {searchQuery && (
-                <button 
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </button>
-              )}
-            </div>
+    <div className="min-h-screen bg-background overflow-hidden">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b">
+        <div className="max-w-screen-2xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Discover
+            </h1>
             
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="h-10 w-10">
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="overflow-y-auto max-h-screen">
-                <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
-                </SheetHeader>
-                
-                <div className="space-y-6 py-4">
-                  <div className="space-y-2">
-                    <Label>Location</Label>
-                    <Input 
-                      placeholder="City or neighborhood" 
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                    />
-                  </div>
+            <div className="flex items-center gap-2 flex-1 max-w-md">
+              <div className="relative w-full">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input 
+                  placeholder="Search by location..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-10"
+                />
+                {searchQuery && (
+                  <button 
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+              
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-10 w-10">
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="overflow-y-auto max-h-screen">
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
                   
-                  <div className="space-y-2">
-                    <Label>Price Range ($/month)</Label>
-                    <div className="pt-4">
-                      <Slider 
-                        value={priceRange} 
-                        min={500} 
-                        max={5000} 
-                        step={100}
-                        onValueChange={setPriceRange}
+                  <div className="space-y-6 py-4">
+                    <div className="space-y-2">
+                      <Label>Location</Label>
+                      <Input 
+                        placeholder="City or neighborhood" 
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
                       />
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span>${priceRange[0]}</span>
-                      <span>${priceRange[1]}</span>
+                    
+                    <div className="space-y-2">
+                      <Label>Price Range ($/month)</Label>
+                      <div className="pt-4">
+                        <Slider 
+                          value={priceRange} 
+                          min={500} 
+                          max={5000} 
+                          step={100}
+                          onValueChange={setPriceRange}
+                        />
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>${priceRange[0]}</span>
+                        <span>${priceRange[1]}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Bedrooms</Label>
+                      <Select 
+                        value={bedroomCount}
+                        onValueChange={setBedroomCount}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any</SelectItem>
+                          <SelectItem value="studio">Studio</SelectItem>
+                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3+</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Bathrooms</Label>
+                      <Select 
+                        value={bathroomCount}
+                        onValueChange={setBathroomCount}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any</SelectItem>
+                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3+</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Amenities</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {allAmenities.map(amenity => (
+                          <Badge 
+                            key={amenity}
+                            variant={selectedAmenities.includes(amenity) ? "default" : "outline"}
+                            className="cursor-pointer"
+                            onClick={() => handleAmenityToggle(amenity)}
+                          >
+                            {amenity}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 pt-4">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={resetFilters}
+                      >
+                        Reset
+                      </Button>
+                      <Button 
+                        className="flex-1"
+                        onClick={applyFilters}
+                      >
+                        Apply Filters
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Bedrooms</Label>
-                    <Select 
-                      value={bedroomCount}
-                      onValueChange={setBedroomCount}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Any" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="any">Any</SelectItem>
-                        <SelectItem value="studio">Studio</SelectItem>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                        <SelectItem value="3">3+</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Bathrooms</Label>
-                    <Select 
-                      value={bathroomCount}
-                      onValueChange={setBathroomCount}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Any" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="any">Any</SelectItem>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                        <SelectItem value="3">3+</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Amenities</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {allAmenities.map(amenity => (
-                        <Badge 
-                          key={amenity}
-                          variant={selectedAmenities.includes(amenity) ? "default" : "outline"}
-                          className="cursor-pointer"
-                          onClick={() => handleAmenityToggle(amenity)}
-                        >
-                          {amenity}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2 pt-4">
-                    <Button 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={resetFilters}
-                    >
-                      Reset
-                    </Button>
-                    <Button 
-                      className="flex-1"
-                      onClick={applyFilters}
-                    >
-                      Apply Filters
-                    </Button>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </header>
       
-      <main className="flex-1 py-6 px-4 flex justify-center items-start min-h-[calc(100vh-4rem)]">
+      <main className="pt-[4.5rem] pb-20 min-h-screen">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-[60vh]">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">Finding your next home...</p>
           </div>
         ) : filteredApartments.length > 0 ? (
-          <div className="relative w-full max-w-lg mx-auto">
+          <div className="relative w-full h-[calc(100vh-4.5rem)] mx-auto">
             {filteredApartments.map((apartment, index) => (
               <div 
                 key={apartment.id} 
