@@ -27,7 +27,7 @@ const mockApartments: Apartment[] = [
     title: "Modern Downtown Loft",
     location: "123 Main St",
     city: "San Francisco",
-    price: 2800,
+    price: 208500, // Converted from $2800
     bedrooms: 1,
     bathrooms: 1,
     size: 750,
@@ -44,7 +44,7 @@ const mockApartments: Apartment[] = [
     title: "Cozy Studio Near Campus",
     location: "456 University Ave",
     city: "Berkeley",
-    price: 1800,
+    price: 135000, // Converted from $1800
     bedrooms: 0,
     bathrooms: 1,
     size: 450,
@@ -60,7 +60,7 @@ const mockApartments: Apartment[] = [
     title: "Luxury 2BR with Balcony",
     location: "789 Ocean Ave",
     city: "Santa Monica",
-    price: 3500,
+    price: 262500, // Converted from $3500
     bedrooms: 2,
     bathrooms: 2,
     size: 1100,
@@ -215,6 +215,13 @@ const Feed = () => {
   const renderApartmentDetails = () => {
     if (!selectedApartment) return null;
     
+    const formattedPrice = selectedApartment.price.toLocaleString('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+
     return (
       <div className="space-y-4">
         <div className="relative rounded-lg overflow-hidden h-56 md:h-80 bg-gray-200">
@@ -237,7 +244,7 @@ const Feed = () => {
           <p className="text-muted-foreground text-sm">
             {selectedApartment.location}, {selectedApartment.city}
           </p>
-          <p className="text-lg font-semibold">${selectedApartment.price.toLocaleString()}/month</p>
+          <p className="text-lg font-semibold">{formattedPrice}/month</p>
         </div>
         
         <div className="grid grid-cols-3 gap-2 py-2">
@@ -286,7 +293,7 @@ const Feed = () => {
       </div>
     );
   };
-  
+
   const allAmenities = [
     "Wifi", "Gym", "Pool", "Laundry", "Parking", 
     "AC", "Furnished", "Pet Friendly", "Balcony", "Dishwasher"

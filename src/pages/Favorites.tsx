@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ApartmentCard, { Apartment } from '@/components/ApartmentCard';
@@ -23,7 +22,7 @@ const Favorites = () => {
             title: "Modern Downtown Loft",
             location: "123 Main St",
             city: "San Francisco",
-            price: 2800,
+            price: 208500, // Converted from $2800
             bedrooms: 1,
             bathrooms: 1,
             size: 750,
@@ -39,7 +38,7 @@ const Favorites = () => {
             title: "Luxury 2BR with Balcony",
             location: "789 Ocean Ave",
             city: "Santa Monica",
-            price: 3500,
+            price: 262500, // Converted from $3500
             bedrooms: 2,
             bathrooms: 2,
             size: 1100,
@@ -57,7 +56,7 @@ const Favorites = () => {
     
     fetchSavedApartments();
   }, []);
-  
+
   const removeFromFavorites = (apartmentId: string) => {
     // In a real app, this would remove from Supabase
     setSavedApartments(prev => prev.filter(apt => apt.id !== apartmentId));
@@ -99,6 +98,14 @@ const Favorites = () => {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                     <ApartmentCard apartment={apartment} />
+                    <p className="text-lg font-semibold">
+                      {apartment.price.toLocaleString('en-IN', {
+                        style: 'currency',
+                        currency: 'INR',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                      })}/month
+                    </p>
                   </div>
                 ))}
               </div>

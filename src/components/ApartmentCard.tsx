@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Home, 
   MapPin, 
-  DollarSign, 
+  Coins, 
   Wifi, 
   BedDouble, 
   ChevronLeft, 
@@ -76,8 +76,13 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
     }
   };
 
-  const priceInINR = Math.round(apartment.price * 75);
-  const formattedPrice = priceInINR.toLocaleString('en-IN');
+  const priceInINR = apartment.price;
+  const formattedPrice = priceInINR.toLocaleString('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
 
   const imageHeight = isMobile ? "h-[80vh]" : "h-[85vh]";
 
@@ -96,7 +101,7 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
         
         <div className="absolute top-4 right-4">
           <Badge className="bg-primary/90 backdrop-blur-sm text-primary-foreground font-semibold px-3 py-1.5 text-sm">
-            ₹{formattedPrice}/mo
+            {formattedPrice}/mo
           </Badge>
         </div>
         
