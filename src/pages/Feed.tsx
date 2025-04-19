@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Loader2, Search, SlidersHorizontal } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SwipeCard from '@/components/SwipeCard';
 import NavBar from '@/components/NavBar';
@@ -18,6 +18,9 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock apartment data
 const mockApartments: Apartment[] = [
@@ -75,24 +78,127 @@ const mockApartments: Apartment[] = [
 
 const Feed = () => {
   const [apartments, setApartments] = useState<Apartment[]>([]);
+  const [filteredApartments, setFilteredApartments] = useState<Apartment[]>([]);
   const [loading, setLoading] = useState(true);
   const [priceRange, setPriceRange] = useState([500, 5000]);
+  const [bedroomCount, setBedroomCount] = useState("any");
+  const [bathroomCount, setBathroomCount] = useState("any");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [location, setLocation] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showFiltered, setShowFiltered] = useState(false);
+  const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Mock loading apartments
   useEffect(() => {
     setTimeout(() => {
       setApartments(mockApartments);
+      setFilteredApartments(mockApartments);
       setLoading(false);
     }, 1500);
   }, []);
   
+  // Filter apartments based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredApartments(apartments);
+      setShowFiltered(false);
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    const filtered = apartments.filter(apt => 
+      apt.city.toLowerCase().includes(query) || 
+      apt.location.toLowerCase().includes(query) || 
+      apt.title.toLowerCase().includes(query)
+    );
+    
+    setFilteredApartments(filtered);
+    setShowFiltered(true);
+  }, [searchQuery, apartments]);
+  
+  // Apply filters
+  const applyFilters = () => {
+    let filtered = [...apartments];
+    
+    // Filter by price
+    filtered = filtered.filter(apt => apt.price >= priceRange[0] && apt.price <= priceRange[1]);
+    
+    // Filter by bedrooms
+    if (bedroomCount !== "any") {
+      if (bedroomCount === "studio") {
+        filtered = filtered.filter(apt => apt.bedrooms === 0);
+      } else {
+        const bedrooms = parseInt(bedroomCount);
+        if (bedrooms === 3) {
+          filtered = filtered.filter(apt => apt.bedrooms >= 3);
+        } else {
+          filtered = filtered.filter(apt => apt.bedrooms === bedrooms);
+        }
+      }
+    }
+    
+    // Filter by bathrooms
+    if (bathroomCount !== "any") {
+      const bathrooms = parseInt(bathroomCount);
+      if (bathrooms === 3) {
+        filtered = filtered.filter(apt => apt.bathrooms >= 3);
+      } else {
+        filtered = filtered.filter(apt => apt.bathrooms === bathrooms);
+      }
+    }
+    
+    // Filter by amenities
+    if (selectedAmenities.length > 0) {
+      filtered = filtered.filter(apt => 
+        selectedAmenities.every(amenity => apt.amenities.includes(amenity))
+      );
+    }
+    
+    // Filter by location
+    if (location) {
+      const locationLower = location.toLowerCase();
+      filtered = filtered.filter(apt => 
+        apt.city.toLowerCase().includes(locationLower) || 
+        apt.location.toLowerCase().includes(locationLower)
+      );
+    }
+    
+    setFilteredApartments(filtered);
+    setShowFiltered(true);
+    toast({
+      title: "Filters applied",
+      description: `Found ${filtered.length} apartments matching your criteria.`,
+    });
+  };
+  
+  // Reset filters
+  const resetFilters = () => {
+    setPriceRange([500, 5000]);
+    setBedroomCount("any");
+    setBathroomCount("any");
+    setSelectedAmenities([]);
+    setLocation("");
+    setFilteredApartments(apartments);
+    setShowFiltered(false);
+    toast({
+      title: "Filters reset",
+      description: "All filters have been cleared.",
+    });
+  };
+  
   const handleSwipe = (direction: 'left' | 'right', apartmentId: string) => {
     console.log(`Swiped ${direction} on apartment ${apartmentId}`);
     // Remove the apartment from the stack
-    setApartments(prev => prev.filter(apt => apt.id !== apartmentId));
+    if (showFiltered) {
+      setFilteredApartments(prev => prev.filter(apt => apt.id !== apartmentId));
+    } else {
+      setApartments(prev => prev.filter(apt => apt.id !== apartmentId));
+    }
   };
   
   const handleAmenityToggle = (amenity: string) => {
@@ -100,6 +206,103 @@ const Feed = () => {
       prev.includes(amenity)
         ? prev.filter(a => a !== amenity)
         : [...prev, amenity]
+    );
+  };
+  
+  const viewApartmentDetails = (apartment: Apartment) => {
+    setSelectedApartment(apartment);
+    setIsDetailsOpen(true);
+  };
+  
+  const startConversation = () => {
+    if (selectedApartment) {
+      // In a real app, this would create a conversation and navigate to the chat
+      toast({
+        title: "Starting conversation",
+        description: `You can now chat about ${selectedApartment.title}`,
+      });
+      navigate(`/messages/${selectedApartment.id}`);
+    }
+  };
+  
+  const renderApartmentDetails = () => {
+    if (!selectedApartment) return null;
+    
+    return (
+      <div className="space-y-4">
+        {/* Image gallery */}
+        <div className="relative rounded-lg overflow-hidden h-56 md:h-80 bg-gray-200">
+          <div 
+            className="h-full w-full bg-cover bg-center"
+            style={{ backgroundImage: `url(${selectedApartment.images[0]})` }}
+          />
+          <div className="absolute bottom-2 right-2 flex gap-1">
+            {selectedApartment.images.map((_, idx) => (
+              <span 
+                key={idx} 
+                className="w-2 h-2 rounded-full bg-white/80"
+              />
+            ))}
+          </div>
+        </div>
+        
+        {/* Apartment details */}
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold">{selectedApartment.title}</h2>
+          <p className="text-muted-foreground text-sm">
+            {selectedApartment.location}, {selectedApartment.city}
+          </p>
+          <p className="text-lg font-semibold">${selectedApartment.price.toLocaleString()}/month</p>
+        </div>
+        
+        {/* Features */}
+        <div className="grid grid-cols-3 gap-2 py-2">
+          <div className="text-center p-2 bg-muted rounded-md">
+            <p className="text-sm font-medium">{selectedApartment.bedrooms}</p>
+            <p className="text-xs text-muted-foreground">Beds</p>
+          </div>
+          <div className="text-center p-2 bg-muted rounded-md">
+            <p className="text-sm font-medium">{selectedApartment.bathrooms}</p>
+            <p className="text-xs text-muted-foreground">Baths</p>
+          </div>
+          <div className="text-center p-2 bg-muted rounded-md">
+            <p className="text-sm font-medium">{selectedApartment.size}</p>
+            <p className="text-xs text-muted-foreground">Sq Ft</p>
+          </div>
+        </div>
+        
+        {/* Description */}
+        <div>
+          <h3 className="font-medium mb-1">Description</h3>
+          <p className="text-sm text-muted-foreground">{selectedApartment.description}</p>
+        </div>
+        
+        {/* Amenities */}
+        <div>
+          <h3 className="font-medium mb-1">Amenities</h3>
+          <div className="flex flex-wrap gap-1">
+            {selectedApartment.amenities.map((amenity) => (
+              <Badge key={amenity} variant="secondary" className="text-xs">
+                {amenity}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        
+        {/* Action buttons */}
+        <div className="grid grid-cols-2 gap-2 pt-2">
+          <Button onClick={startConversation} className="w-full">
+            Message
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsDetailsOpen(false)} 
+            className="w-full"
+          >
+            Close
+          </Button>
+        </div>
+      </div>
     );
   };
   
@@ -121,10 +324,18 @@ const Feed = () => {
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3.5 w-3.5 md:h-4 md:w-4" />
               <Input 
                 placeholder="Search location..." 
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-7 md:pl-9 h-8 md:h-10 text-sm md:text-base"
               />
+              {searchQuery && (
+                <button 
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              )}
             </div>
             
             <Sheet>
@@ -139,12 +350,22 @@ const Feed = () => {
                 </SheetHeader>
                 
                 <div className="space-y-6 py-4">
+                  {/* Location */}
+                  <div className="space-y-2">
+                    <Label>Location</Label>
+                    <Input 
+                      placeholder="City or neighborhood" 
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
+                  </div>
+                  
                   {/* Price Range */}
                   <div className="space-y-2">
                     <Label>Price Range ($/month)</Label>
                     <div className="pt-4">
                       <Slider 
-                        defaultValue={priceRange} 
+                        value={priceRange} 
                         min={500} 
                         max={5000} 
                         step={100}
@@ -160,7 +381,10 @@ const Feed = () => {
                   {/* Bedrooms */}
                   <div className="space-y-2">
                     <Label>Bedrooms</Label>
-                    <Select defaultValue="any">
+                    <Select 
+                      value={bedroomCount}
+                      onValueChange={setBedroomCount}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Any" />
                       </SelectTrigger>
@@ -177,7 +401,10 @@ const Feed = () => {
                   {/* Bathrooms */}
                   <div className="space-y-2">
                     <Label>Bathrooms</Label>
-                    <Select defaultValue="any">
+                    <Select 
+                      value={bathroomCount}
+                      onValueChange={setBathroomCount}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Any" />
                       </SelectTrigger>
@@ -209,10 +436,17 @@ const Feed = () => {
                   
                   {/* Reset and Apply Buttons */}
                   <div className="flex gap-2 pt-4">
-                    <Button variant="outline" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={resetFilters}
+                    >
                       Reset
                     </Button>
-                    <Button className="flex-1">
+                    <Button 
+                      className="flex-1"
+                      onClick={applyFilters}
+                    >
                       Apply Filters
                     </Button>
                   </div>
@@ -229,9 +463,9 @@ const Feed = () => {
             <Loader2 className="h-10 w-10 md:h-12 md:w-12 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">Finding your next home...</p>
           </div>
-        ) : apartments.length > 0 ? (
+        ) : filteredApartments.length > 0 ? (
           <div className="relative w-full max-w-xs sm:max-w-sm">
-            {apartments.map((apartment, index) => (
+            {filteredApartments.map((apartment, index) => (
               <div 
                 key={apartment.id} 
                 className={`absolute w-full ${index === 0 ? 'z-20' : 'z-10'}`}
@@ -243,10 +477,30 @@ const Feed = () => {
                 }}
               >
                 {index === 0 ? (
-                  <SwipeCard 
-                    apartment={apartment} 
-                    onSwipe={(direction) => handleSwipe(direction, apartment.id)} 
-                  />
+                  <div>
+                    <SwipeCard 
+                      apartment={apartment} 
+                      onSwipe={(direction) => handleSwipe(direction, apartment.id)} 
+                    />
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => viewApartmentDetails(apartment)}
+                        className="w-full"
+                      >
+                        View Apartment
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          setSelectedApartment(apartment);
+                          startConversation();
+                        }}
+                        className="w-full"
+                      >
+                        Message
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="pointer-events-none">
                     <SwipeCard 
@@ -263,19 +517,40 @@ const Feed = () => {
             <div className="bg-primary/10 p-3 md:p-4 rounded-full mb-3 md:mb-4">
               <Search className="h-6 w-6 md:h-8 md:w-8 text-primary" />
             </div>
-            <h3 className="text-lg md:text-xl font-bold mb-2">No more apartments</h3>
+            <h3 className="text-lg md:text-xl font-bold mb-2">No apartments found</h3>
             <p className="text-sm md:text-base text-muted-foreground mb-4 md:mb-6">
-              You've seen all available apartments matching your criteria. Try adjusting your filters or check back later.
+              {showFiltered ? 
+                "No apartments match your search criteria. Try adjusting your filters or search terms." :
+                "You've seen all available apartments. Try adjusting your filters or check back later."
+              }
             </p>
             <Button 
               className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-              onClick={() => setApartments(mockApartments)}
+              onClick={() => {
+                setShowFiltered(false);
+                setSearchQuery("");
+                resetFilters();
+                setApartments(mockApartments);
+                setFilteredApartments(mockApartments);
+              }}
             >
               Refresh
             </Button>
           </div>
         )}
       </main>
+      
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-md w-[90vw] sm:w-full max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Apartment Details</DialogTitle>
+            <DialogDescription>
+              View the details of this apartment
+            </DialogDescription>
+          </DialogHeader>
+          {renderApartmentDetails()}
+        </DialogContent>
+      </Dialog>
       
       <NavBar />
     </div>
