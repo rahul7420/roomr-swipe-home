@@ -11,9 +11,16 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/use-toast';
-import { Loader2, Camera, DollarSign, User, Home, LogOut, PlusCircle, X } from 'lucide-react';
+import { Loader2, Camera, DollarSign, User, Home, LogOut, PlusCircle, X, ImagePlus } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import PhotoUpload from '@/components/PhotoUpload';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 const preferenceOptions = [
   "Non-smoker", 
@@ -38,6 +45,7 @@ const Profile = () => {
   const [preferences, setPreferences] = useState<string[]>([]);
   const [moveInDate, setMoveInDate] = useState('');
   const [notifications, setNotifications] = useState(true);
+  const [apartmentPhotos, setApartmentPhotos] = useState<string[]>([]);
   const isMobile = useIsMobile();
   
   const getInitials = (name: string) => {
@@ -81,6 +89,17 @@ const Profile = () => {
     }
   };
   
+  const handlePhotosChange = (photos: string[]) => {
+    setApartmentPhotos(photos);
+    
+    // In a real app, this would save the photo URLs to the user's profile
+    // in the Supabase database
+    toast({
+      title: "Photos updated",
+      description: "Your apartment photos have been updated.",
+    });
+  };
+  
   return (
     <div className="min-h-screen pb-16 md:pb-0 overflow-x-hidden">
       <header className="bg-gradient-to-br from-primary to-secondary p-4 md:p-6 text-white">
@@ -106,157 +125,203 @@ const Profile = () => {
       </header>
       
       <main className="p-3 md:p-4 max-w-screen-lg mx-auto overflow-y-auto">
-        <div className="space-y-5 md:space-y-6">
-          <div>
-            <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">Personal Information</h2>
-            <div className="space-y-3 md:space-y-4">
-              <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input 
-                  id="name" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
-                  placeholder="Your name"
-                  className="text-sm md:text-base"
-                />
-              </div>
-              
-              <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea 
-                  id="bio" 
-                  value={bio} 
-                  onChange={(e) => setBio(e.target.value)} 
-                  placeholder="Tell potential roommates about yourself..."
-                  className="resize-none text-sm md:text-base"
-                  rows={4}
-                />
-              </div>
-            </div>
-          </div>
+        <Tabs defaultValue="personal" className="w-full">
+          <TabsList className="w-full grid grid-cols-2 mb-4">
+            <TabsTrigger value="personal">Personal Info</TabsTrigger>
+            <TabsTrigger value="apartment">My Apartment</TabsTrigger>
+          </TabsList>
           
-          <Separator />
-          
-          <div>
-            <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">Roommate Preferences</h2>
-            <div className="space-y-3 md:space-y-4">
-              <div className="space-y-1.5 md:space-y-2">
-                <Label>Monthly Budget Range</Label>
-                <div className="pt-5 md:pt-6 px-2">
-                  <Slider 
-                    value={budgetRange} 
-                    min={500} 
-                    max={5000} 
-                    step={100}
-                    onValueChange={setBudgetRange}
+          <TabsContent value="personal" className="space-y-5 md:space-y-6">
+            <div>
+              <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">Personal Information</h2>
+              <div className="space-y-3 md:space-y-4">
+                <div className="space-y-1.5 md:space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input 
+                    id="name" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    placeholder="Your name"
+                    className="text-sm md:text-base"
                   />
                 </div>
-                <div className="flex justify-between text-xs md:text-sm">
-                  <div className="flex items-center">
-                    <DollarSign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
-                    <span>{budgetRange[0]}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <DollarSign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
-                    <span>{budgetRange[1]}</span>
-                  </div>
+                
+                <div className="space-y-1.5 md:space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea 
+                    id="bio" 
+                    value={bio} 
+                    onChange={(e) => setBio(e.target.value)} 
+                    placeholder="Tell potential roommates about yourself..."
+                    className="resize-none text-sm md:text-base"
+                    rows={4}
+                  />
                 </div>
               </div>
-              
-              <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="moveInDate">Preferred Move-in Date</Label>
-                <Input 
-                  id="moveInDate" 
-                  type="date" 
-                  value={moveInDate} 
-                  onChange={(e) => setMoveInDate(e.target.value)} 
-                  className="text-sm md:text-base"
-                />
-              </div>
-              
-              <div className="space-y-1.5 md:space-y-2">
-                <Label>Roommate Preferences</Label>
-                <div className="flex flex-wrap gap-1.5 md:gap-2 mb-1.5 md:mb-2">
-                  {preferences.map(preference => (
-                    <Badge key={preference} className="flex items-center gap-1 pl-1.5 md:pl-2 text-[10px] md:text-xs">
-                      {preference}
-                      <button 
-                        onClick={() => handleRemovePreference(preference)}
-                        className="ml-1 hover:bg-primary-foreground rounded-full"
-                      >
-                        <X className="h-2.5 w-2.5 md:h-3 md:w-3" />
-                      </button>
-                    </Badge>
-                  ))}
+            </div>
+            
+            <Separator />
+            
+            <div>
+              <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">Roommate Preferences</h2>
+              <div className="space-y-3 md:space-y-4">
+                <div className="space-y-1.5 md:space-y-2">
+                  <Label>Monthly Budget Range</Label>
+                  <div className="pt-5 md:pt-6 px-2">
+                    <Slider 
+                      value={budgetRange} 
+                      min={500} 
+                      max={5000} 
+                      step={100}
+                      onValueChange={setBudgetRange}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs md:text-sm">
+                    <div className="flex items-center">
+                      <DollarSign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
+                      <span>{budgetRange[0]}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <DollarSign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
+                      <span>{budgetRange[1]}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5 md:gap-2">
-                  {preferenceOptions
-                    .filter(option => !preferences.includes(option))
-                    .map(option => (
-                      <Badge 
-                        key={option} 
-                        variant="outline" 
-                        className="cursor-pointer hover:bg-secondary/10 text-[10px] md:text-xs"
-                        onClick={() => handleAddPreference(option)}
-                      >
-                        <PlusCircle className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
-                        {option}
+                
+                <div className="space-y-1.5 md:space-y-2">
+                  <Label htmlFor="moveInDate">Preferred Move-in Date</Label>
+                  <Input 
+                    id="moveInDate" 
+                    type="date" 
+                    value={moveInDate} 
+                    onChange={(e) => setMoveInDate(e.target.value)} 
+                    className="text-sm md:text-base"
+                  />
+                </div>
+                
+                <div className="space-y-1.5 md:space-y-2">
+                  <Label>Roommate Preferences</Label>
+                  <div className="flex flex-wrap gap-1.5 md:gap-2 mb-1.5 md:mb-2">
+                    {preferences.map(preference => (
+                      <Badge key={preference} className="flex items-center gap-1 pl-1.5 md:pl-2 text-[10px] md:text-xs">
+                        {preference}
+                        <button 
+                          onClick={() => handleRemovePreference(preference)}
+                          className="ml-1 hover:bg-primary-foreground rounded-full"
+                        >
+                          <X className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                        </button>
                       </Badge>
                     ))}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 md:gap-2">
+                    {preferenceOptions
+                      .filter(option => !preferences.includes(option))
+                      .map(option => (
+                        <Badge 
+                          key={option} 
+                          variant="outline" 
+                          className="cursor-pointer hover:bg-secondary/10 text-[10px] md:text-xs"
+                          onClick={() => handleAddPreference(option)}
+                        >
+                          <PlusCircle className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
+                          {option}
+                        </Badge>
+                      ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+            
+            <Separator />
+            
+            <div>
+              <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">Settings</h2>
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="notifications">Notifications</Label>
+                    <p className="text-[10px] md:text-sm text-muted-foreground">
+                      Receive notifications for new matches and messages
+                    </p>
+                  </div>
+                  <Switch 
+                    id="notifications" 
+                    checked={notifications} 
+                    onCheckedChange={setNotifications} 
+                  />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
           
-          <Separator />
-          
-          <div>
-            <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">Settings</h2>
+          <TabsContent value="apartment" className="space-y-5 md:space-y-6">
+            <div>
+              <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">
+                <div className="flex items-center">
+                  <ImagePlus className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                  Apartment Photos
+                </div>
+              </h2>
+              <PhotoUpload 
+                existingPhotos={apartmentPhotos}
+                onPhotosChange={handlePhotosChange}
+                maxPhotos={8}
+              />
+            </div>
+            
+            <Separator />
+            
             <div className="space-y-3 md:space-y-4">
+              <h2 className="text-base md:text-lg font-medium mb-1 md:mb-2">Privacy Settings</h2>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="notifications">Notifications</Label>
+                  <Label htmlFor="photo-privacy">Photo Privacy</Label>
                   <p className="text-[10px] md:text-sm text-muted-foreground">
-                    Receive notifications for new matches and messages
+                    Control who can see your apartment photos
                   </p>
                 </div>
-                <Switch 
-                  id="notifications" 
-                  checked={notifications} 
-                  onCheckedChange={setNotifications} 
-                />
+                <select
+                  id="photo-privacy"
+                  className="p-2 border rounded text-xs md:text-sm"
+                  defaultValue="matches"
+                >
+                  <option value="public">Visible to everyone</option>
+                  <option value="matches">Visible to matches only</option>
+                  <option value="private">Private (only visible to me)</option>
+                </select>
               </div>
             </div>
-          </div>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="flex flex-col gap-2 md:gap-3 pt-3 md:pt-4 mt-4">
+          <Button 
+            onClick={handleSaveProfile}
+            className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 h-9 md:h-10 text-sm md:text-base"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Home className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
+                Save Profile
+              </>
+            )}
+          </Button>
           
-          <div className="flex flex-col gap-2 md:gap-3 pt-3 md:pt-4">
-            <Button 
-              onClick={handleSaveProfile}
-              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 h-9 md:h-10 text-sm md:text-base"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Home className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
-                  Save Profile
-                </>
-              )}
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={logout}
-              className="h-9 md:h-10 text-sm md:text-base"
-            >
-              <LogOut className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
-              Logout
-            </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            onClick={logout}
+            className="h-9 md:h-10 text-sm md:text-base"
+          >
+            <LogOut className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
+            Logout
+          </Button>
         </div>
       </main>
       
