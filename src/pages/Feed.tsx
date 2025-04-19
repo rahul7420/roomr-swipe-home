@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Loader2, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock apartment data
 const mockApartments: Apartment[] = [
   {
     id: "1",
@@ -93,7 +91,6 @@ const Feed = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Mock loading apartments
   useEffect(() => {
     setTimeout(() => {
       setApartments(mockApartments);
@@ -102,7 +99,6 @@ const Feed = () => {
     }, 1500);
   }, []);
   
-  // Filter apartments based on search query
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredApartments(apartments);
@@ -121,14 +117,11 @@ const Feed = () => {
     setShowFiltered(true);
   }, [searchQuery, apartments]);
   
-  // Apply filters
   const applyFilters = () => {
     let filtered = [...apartments];
     
-    // Filter by price
     filtered = filtered.filter(apt => apt.price >= priceRange[0] && apt.price <= priceRange[1]);
     
-    // Filter by bedrooms
     if (bedroomCount !== "any") {
       if (bedroomCount === "studio") {
         filtered = filtered.filter(apt => apt.bedrooms === 0);
@@ -142,7 +135,6 @@ const Feed = () => {
       }
     }
     
-    // Filter by bathrooms
     if (bathroomCount !== "any") {
       const bathrooms = parseInt(bathroomCount);
       if (bathrooms === 3) {
@@ -152,14 +144,12 @@ const Feed = () => {
       }
     }
     
-    // Filter by amenities
     if (selectedAmenities.length > 0) {
       filtered = filtered.filter(apt => 
         selectedAmenities.every(amenity => apt.amenities.includes(amenity))
       );
     }
     
-    // Filter by location
     if (location) {
       const locationLower = location.toLowerCase();
       filtered = filtered.filter(apt => 
@@ -176,7 +166,6 @@ const Feed = () => {
     });
   };
   
-  // Reset filters
   const resetFilters = () => {
     setPriceRange([500, 5000]);
     setBedroomCount("any");
@@ -193,7 +182,6 @@ const Feed = () => {
   
   const handleSwipe = (direction: 'left' | 'right', apartmentId: string) => {
     console.log(`Swiped ${direction} on apartment ${apartmentId}`);
-    // Remove the apartment from the stack
     if (showFiltered) {
       setFilteredApartments(prev => prev.filter(apt => apt.id !== apartmentId));
     } else {
@@ -216,7 +204,6 @@ const Feed = () => {
   
   const startConversation = () => {
     if (selectedApartment) {
-      // In a real app, this would create a conversation and navigate to the chat
       toast({
         title: "Starting conversation",
         description: `You can now chat about ${selectedApartment.title}`,
@@ -230,7 +217,6 @@ const Feed = () => {
     
     return (
       <div className="space-y-4">
-        {/* Image gallery */}
         <div className="relative rounded-lg overflow-hidden h-56 md:h-80 bg-gray-200">
           <div 
             className="h-full w-full bg-cover bg-center"
@@ -246,7 +232,6 @@ const Feed = () => {
           </div>
         </div>
         
-        {/* Apartment details */}
         <div className="space-y-2">
           <h2 className="text-xl font-bold">{selectedApartment.title}</h2>
           <p className="text-muted-foreground text-sm">
@@ -255,7 +240,6 @@ const Feed = () => {
           <p className="text-lg font-semibold">${selectedApartment.price.toLocaleString()}/month</p>
         </div>
         
-        {/* Features */}
         <div className="grid grid-cols-3 gap-2 py-2">
           <div className="text-center p-2 bg-muted rounded-md">
             <p className="text-sm font-medium">{selectedApartment.bedrooms}</p>
@@ -271,13 +255,11 @@ const Feed = () => {
           </div>
         </div>
         
-        {/* Description */}
         <div>
           <h3 className="font-medium mb-1">Description</h3>
           <p className="text-sm text-muted-foreground">{selectedApartment.description}</p>
         </div>
         
-        {/* Amenities */}
         <div>
           <h3 className="font-medium mb-1">Amenities</h3>
           <div className="flex flex-wrap gap-1">
@@ -289,7 +271,6 @@ const Feed = () => {
           </div>
         </div>
         
-        {/* Action buttons */}
         <div className="grid grid-cols-2 gap-2 pt-2">
           <Button onClick={startConversation} className="w-full">
             Message
@@ -312,36 +293,36 @@ const Feed = () => {
   ];
   
   return (
-    <div className="min-h-screen pb-16 md:pb-0 overflow-x-hidden">
-      <header className="sticky top-0 z-10 bg-white border-b shadow-sm p-3 md:p-4 dark:bg-gray-900">
-        <div className="flex items-center justify-between max-w-screen-lg mx-auto">
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b p-3 md:p-4 dark:bg-gray-900/80">
+        <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-4">
           <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Discover
           </h1>
           
-          <div className="flex items-center gap-2">
-            <div className="relative w-full max-w-[140px] sm:max-w-xs md:max-w-sm">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3.5 w-3.5 md:h-4 md:w-4" />
+          <div className="flex items-center gap-2 flex-1 max-w-md">
+            <div className="relative w-full">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input 
                 placeholder="Search location..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-7 md:pl-9 h-8 md:h-10 text-sm md:text-base"
+                className="pl-9 h-10"
               />
               {searchQuery && (
                 <button 
                   className="absolute right-2 top-1/2 transform -translate-y-1/2"
                   onClick={() => setSearchQuery("")}
                 >
-                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                  <X className="h-4 w-4 text-muted-foreground" />
                 </button>
               )}
             </div>
             
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8 md:h-10 md:w-10">
-                  <SlidersHorizontal className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                <Button variant="outline" size="icon" className="h-10 w-10">
+                  <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
               <SheetContent className="overflow-y-auto max-h-screen">
@@ -350,7 +331,6 @@ const Feed = () => {
                 </SheetHeader>
                 
                 <div className="space-y-6 py-4">
-                  {/* Location */}
                   <div className="space-y-2">
                     <Label>Location</Label>
                     <Input 
@@ -360,7 +340,6 @@ const Feed = () => {
                     />
                   </div>
                   
-                  {/* Price Range */}
                   <div className="space-y-2">
                     <Label>Price Range ($/month)</Label>
                     <div className="pt-4">
@@ -378,7 +357,6 @@ const Feed = () => {
                     </div>
                   </div>
                   
-                  {/* Bedrooms */}
                   <div className="space-y-2">
                     <Label>Bedrooms</Label>
                     <Select 
@@ -398,7 +376,6 @@ const Feed = () => {
                     </Select>
                   </div>
                   
-                  {/* Bathrooms */}
                   <div className="space-y-2">
                     <Label>Bathrooms</Label>
                     <Select 
@@ -417,7 +394,6 @@ const Feed = () => {
                     </Select>
                   </div>
                   
-                  {/* Amenities */}
                   <div className="space-y-2">
                     <Label>Amenities</Label>
                     <div className="flex flex-wrap gap-2">
@@ -434,7 +410,6 @@ const Feed = () => {
                     </div>
                   </div>
                   
-                  {/* Reset and Apply Buttons */}
                   <div className="flex gap-2 pt-4">
                     <Button 
                       variant="outline" 
@@ -457,14 +432,14 @@ const Feed = () => {
         </div>
       </header>
       
-      <main className="py-4 md:py-6 px-3 md:px-4 flex flex-col items-center justify-center max-w-screen-xl mx-auto overflow-y-auto">
+      <main className="flex-1 py-6 px-4 flex justify-center items-start min-h-[calc(100vh-4rem)]">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-60 md:h-80">
-            <Loader2 className="h-10 w-10 md:h-12 md:w-12 animate-spin text-primary mb-4" />
+          <div className="flex flex-col items-center justify-center h-[60vh]">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">Finding your next home...</p>
           </div>
         ) : filteredApartments.length > 0 ? (
-          <div className="relative w-full max-w-xs sm:max-w-sm">
+          <div className="relative w-full max-w-lg mx-auto">
             {filteredApartments.map((apartment, index) => (
               <div 
                 key={apartment.id} 
@@ -513,7 +488,7 @@ const Feed = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center text-center h-60 md:h-80 max-w-sm">
+          <div className="flex flex-col items-center justify-center text-center h-[60vh] max-w-sm">
             <div className="bg-primary/10 p-3 md:p-4 rounded-full mb-3 md:mb-4">
               <Search className="h-6 w-6 md:h-8 md:w-8 text-primary" />
             </div>

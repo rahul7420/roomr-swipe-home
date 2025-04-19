@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +37,6 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const isMobile = useIsMobile();
   
-  // Minimum swipe distance required
   const minSwipeDistance = 50;
   
   const nextImage = (e?: React.MouseEvent) => {
@@ -55,7 +53,6 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
     }
   };
   
-  // Touch handlers for swiping images
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
@@ -79,10 +76,9 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
     }
   };
 
-  // Format price with commas
-  const formattedPrice = apartment.price.toLocaleString();
+  const priceInINR = Math.round(apartment.price * 75);
+  const formattedPrice = priceInINR.toLocaleString('en-IN');
 
-  // Determine image height based on device
   const imageHeight = isMobile ? "h-56" : "h-64";
 
   return (
@@ -93,9 +89,18 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-300" style={{ backgroundImage: `url(${apartment.images[currentImageIndex]})` }} />
+        <div 
+          className="absolute inset-0 bg-cover bg-center transition-transform duration-300" 
+          style={{ backgroundImage: `url(${apartment.images[currentImageIndex]})` }} 
+        />
         
-        {/* Image navigation buttons */}
+        <div className="absolute top-2 right-2">
+          <Badge className="bg-primary text-primary-foreground font-semibold px-2 py-1 text-sm">
+            <DollarSign className="h-3.5 w-3.5 mr-1" />
+            ₹{formattedPrice}/mo
+          </Badge>
+        </div>
+        
         {apartment.images.length > 1 && (
           <>
             <button 
@@ -113,7 +118,6 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
               <ChevronRight size={isMobile ? 16 : 20} />
             </button>
             
-            {/* Image pagination dots */}
             <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
               {apartment.images.map((_, index) => (
                 <span 
@@ -126,14 +130,6 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
             </div>
           </>
         )}
-        
-        {/* Price badge */}
-        <div className="absolute top-2 right-2">
-          <Badge className="bg-primary text-primary-foreground font-semibold px-1.5 py-0.5 md:px-2 md:py-1 text-xs md:text-sm">
-            <DollarSign className="h-3 w-3 md:h-3.5 md:w-3.5 mr-0.5 md:mr-1" />
-            {formattedPrice}/mo
-          </Badge>
-        </div>
       </div>
       
       <CardContent className="p-3 md:p-4">
