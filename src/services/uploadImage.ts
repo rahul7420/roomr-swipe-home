@@ -30,6 +30,13 @@ export async function uploadImage(imageUri: string, userId: string) {
       .from('apartment-photos')
       .getPublicUrl(fileName);
 
+    // In a real app, this would store the photo in the apartments collection/table
+    // Example:
+    // await supabase
+    //   .from('apartments')
+    //   .update({ images: supabase.sql`array_append(images, ${publicUrl})` })
+    //   .eq('user_id', userId);
+
     return publicUrl;
   } catch (error) {
     console.error('Unexpected error in uploadImage:', error);

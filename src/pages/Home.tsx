@@ -11,33 +11,46 @@ import NavBar from '@/components/NavBar';
 import { Apartment } from '@/components/ApartmentCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Mock data
+// Updated mock data for Indian student apartments
 const mockApartments: Apartment[] = [
   {
     id: "1",
-    title: "Modern Downtown Loft",
-    location: "123 Main St",
-    city: "San Francisco",
-    price: 2800,
+    title: "Modern PG in Koramangala",
+    location: "8th Block",
+    city: "Bengaluru",
+    price: 15000,
     bedrooms: 1,
     bathrooms: 1,
-    size: 750,
-    amenities: ["Wifi", "Gym", "Furnished"],
+    size: 250,
+    amenities: ["Wifi", "Mess", "Furnished"],
     images: ["https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=800&q=80"],
-    description: "Beautiful downtown loft with high ceilings and exposed brick."
+    description: "Well-maintained PG with quality furniture, high-speed internet, and delicious mess food included."
   },
   {
     id: "2",
-    title: "Cozy Studio Near Campus",
-    location: "456 University Ave",
-    city: "Berkeley",
-    price: 1800,
-    bedrooms: 0,
+    title: "Student Hostel near Campus",
+    location: "Yelahanka",
+    city: "Bengaluru",
+    price: 8000,
+    bedrooms: 1,
     bathrooms: 1,
-    size: 450,
-    amenities: ["Wifi", "Laundry"],
+    size: 150,
+    amenities: ["Wifi", "Laundry", "Mess"],
     images: ["https://images.unsplash.com/photo-1626885930974-1cf561b13b27?auto=format&fit=crop&w=800&q=80"],
-    description: "Perfect studio for students, just 10 minutes from campus."
+    description: "Perfect hostel for students, just 10 minutes from college campus. All utilities included."
+  },
+  {
+    id: "3",
+    title: "2BHK Apartment for Sharing",
+    location: "HSR Layout",
+    city: "Bengaluru",
+    price: 12000,
+    bedrooms: 2,
+    bathrooms: 2,
+    size: 800,
+    amenities: ["Wifi", "AC", "Gym", "Security"],
+    images: ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80"],
+    description: "Fully furnished 2BHK flat ideal for sharing. Society has gym, security and backup power."
   }
 ];
 
@@ -56,7 +69,7 @@ const mockMatches: Match[] = [
   {
     id: "1",
     user: {
-      name: "Alex Johnson",
+      name: "Arjun Kumar",
       image: "https://randomuser.me/api/portraits/men/32.jpg"
     },
     apartment: mockApartments[0],
@@ -66,7 +79,7 @@ const mockMatches: Match[] = [
   {
     id: "2",
     user: {
-      name: "Samantha Lee",
+      name: "Priya Singh",
       image: "https://randomuser.me/api/portraits/women/44.jpg"
     },
     apartment: mockApartments[1],
@@ -108,7 +121,7 @@ const Home = () => {
             Welcome back{user?.name ? `, ${user.name}` : ''}
           </h1>
           <p className="text-sm md:text-base text-white/90 mb-4 md:mb-6">
-            Find your perfect home and roommate match.
+            Find your perfect PG and roommate match.
           </p>
           
           <div className="grid grid-cols-2 gap-3 md:gap-4">
@@ -204,7 +217,7 @@ const Home = () => {
                               {match.apartment.location}, {match.apartment.city}
                             </p>
                             <p className="text-[10px] md:text-xs font-medium">
-                              ${match.apartment.price.toLocaleString()}/month
+                              ₹{match.apartment.price.toLocaleString('en-IN')}/month
                             </p>
                           </div>
                         </div>
@@ -229,10 +242,10 @@ const Home = () => {
                 <Users className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground mb-3 md:mb-4" />
                 <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2">No matches yet</h3>
                 <p className="text-xs md:text-sm text-muted-foreground mb-4 md:mb-6 max-w-xs">
-                  Start discovering and liking apartments to get matched with potential roommates.
+                  Start discovering and liking PGs to get matched with potential roommates.
                 </p>
                 <Button onClick={() => navigate('/feed')}>
-                  Find Apartments
+                  Find PGs
                 </Button>
               </div>
             )}
@@ -259,7 +272,7 @@ const Home = () => {
                               {apartment.location}, {apartment.city}
                             </p>
                             <p className="text-xs md:text-sm font-bold mb-1">
-                              ${apartment.price.toLocaleString()}/month
+                              ₹{apartment.price.toLocaleString('en-IN')}/month
                             </p>
                             <div className="flex text-[10px] md:text-xs text-muted-foreground">
                               <span className="mr-2">{apartment.bedrooms} {apartment.bedrooms === 1 ? 'Bed' : 'Beds'}</span>
@@ -276,12 +289,12 @@ const Home = () => {
             ) : (
               <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center">
                 <Star className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground mb-3 md:mb-4" />
-                <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2">No saved apartments</h3>
+                <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2">No saved PGs</h3>
                 <p className="text-xs md:text-sm text-muted-foreground mb-4 md:mb-6 max-w-xs">
-                  You haven't saved any apartments yet. Start swiping to find your perfect home.
+                  You haven't saved any PGs yet. Start swiping to find your perfect home.
                 </p>
                 <Button onClick={() => navigate('/feed')}>
-                  Discover Apartments
+                  Discover PGs
                 </Button>
               </div>
             )}

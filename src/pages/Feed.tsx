@@ -19,58 +19,58 @@ import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 const mockApartments: Apartment[] = [
   {
     id: "1",
-    title: "Modern Downtown Loft",
-    location: "123 Main St",
-    city: "San Francisco",
-    price: 208500, // Converted from $2800
+    title: "Modern PG in Koramangala",
+    location: "8th Block",
+    city: "Bengaluru",
+    price: 15000,
     bedrooms: 1,
     bathrooms: 1,
-    size: 750,
-    amenities: ["Wifi", "Gym", "Furnished", "Pet Friendly"],
+    size: 250,
+    amenities: ["Wifi", "Mess", "Furnished", "AC"],
     images: [
       "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1616137422495-1e9e46e2aa77?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=800&q=80"
     ],
-    description: "Beautiful downtown loft with high ceilings, exposed brick, and amazing city views. Walking distance to restaurants and shops."
+    description: "Well-maintained PG with quality furniture, high-speed internet, and delicious mess food included. Walking distance to tech parks."
   },
   {
     id: "2",
-    title: "Cozy Studio Near Campus",
-    location: "456 University Ave",
-    city: "Berkeley",
-    price: 135000, // Converted from $1800
-    bedrooms: 0,
+    title: "Student Hostel near Campus",
+    location: "Yelahanka",
+    city: "Bengaluru",
+    price: 8000,
+    bedrooms: 1,
     bathrooms: 1,
-    size: 450,
-    amenities: ["Wifi", "Laundry", "AC"],
+    size: 150,
+    amenities: ["Wifi", "Laundry", "Mess"],
     images: [
       "https://images.unsplash.com/photo-1626885930974-1cf561b13b27?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1617104678098-de229db51175?auto=format&fit=crop&w=800&q=80"
     ],
-    description: "Perfect studio for students, just a 10-minute walk to campus. Includes all utilities and high-speed internet."
+    description: "Perfect hostel for students, just a 10-minute walk to campus. Includes all utilities and high-speed internet."
   },
   {
     id: "3",
-    title: "Luxury 2BR with Balcony",
-    location: "789 Ocean Ave",
-    city: "Santa Monica",
-    price: 262500, // Converted from $3500
+    title: "2BHK Apartment for Sharing",
+    location: "HSR Layout",
+    city: "Bengaluru",
+    price: 12000,
     bedrooms: 2,
     bathrooms: 2,
-    size: 1100,
-    amenities: ["Wifi", "Pool", "Gym", "Parking", "Balcony", "AC", "Dishwasher"],
+    size: 800,
+    amenities: ["Wifi", "AC", "Gym", "Security", "Parking", "Power Backup"],
     images: [
       "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1617103996702-96ff29b1c467?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1616593969747-4797dc75033e?auto=format&fit=crop&w=800&q=80"
     ],
-    description: "Stunning 2-bedroom apartment with ocean views from a private balcony. Includes access to building amenities like pool and fitness center."
+    description: "Fully furnished 2BHK flat ideal for sharing. Society has gym, security and backup power."
   }
 ];
 
@@ -295,8 +295,8 @@ const Feed = () => {
   };
 
   const allAmenities = [
-    "Wifi", "Gym", "Pool", "Laundry", "Parking", 
-    "AC", "Furnished", "Pet Friendly", "Balcony", "Dishwasher"
+    "Wifi", "Gym", "Mess", "Laundry", "Parking", 
+    "AC", "Furnished", "Power Backup", "Security", "Balcony", "Study Table"
   ];
   
   return (

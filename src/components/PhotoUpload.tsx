@@ -27,7 +27,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PhotoUploadProps {
@@ -60,16 +60,17 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  // Room type options
+  // Room type options - updated for Indian context
   const roomTypes = [
     "Living Room", 
     "Bedroom", 
     "Kitchen", 
     "Bathroom", 
     "Balcony", 
-    "Common Area",
+    "PG Common Area",
     "Study Area",
-    "Exterior View"
+    "Exterior View",
+    "Hostel Room"
   ];
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,7 +201,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               Add Photos
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md w-[90vw] max-h-[90vh] overflow-auto p-4 md:p-6">
             <DialogHeader>
               <DialogTitle>Upload Photos</DialogTitle>
               <DialogDescription>
@@ -208,10 +209,10 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 <Button 
                   variant="outline" 
-                  className="col-span-2"
+                  className="w-full"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={photosRemaining <= 0}
                 >
@@ -232,7 +233,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               {photoUploads.length > 0 && (
                 <div className="space-y-2">
                   <Label>Selected Photos ({photoUploads.length})</Label>
-                  <ScrollArea className="h-[200px] rounded-md border p-2">
+                  <ScrollArea className="h-[40vh] rounded-md border p-2">
                     <div className="space-y-3">
                       {photoUploads.map((photo) => (
                         <div key={photo.id} className="flex items-start gap-2 pb-3">
@@ -278,13 +279,18 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                 </div>
               )}
               
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setDialogOpen(false)}
+                  className="w-full order-2 sm:order-1"
+                >
                   Cancel
                 </Button>
                 <Button 
                   onClick={handleUploadPhotos}
                   disabled={photoUploads.length === 0 || isUploading}
+                  className="w-full order-1 sm:order-2"
                 >
                   {isUploading ? (
                     <>
