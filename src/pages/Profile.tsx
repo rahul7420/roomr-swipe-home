@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { uploadImage } from '@/services/uploadImage';
 
 const preferenceOptions = [
   "Non-smoker", 
@@ -47,7 +47,9 @@ const Profile = () => {
   const [notifications, setNotifications] = useState(true);
   const [apartmentPhotos, setApartmentPhotos] = useState<string[]>([]);
   const isMobile = useIsMobile();
-  
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const { toast } = useToast();
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -98,6 +100,44 @@ const Profile = () => {
       title: "Photos updated",
       description: "Your apartment photos have been updated.",
     });
+  };
+
+  const handleImagePick = () => {
+    // Mock image picking - in a real app, use react-native-image-picker
+    const mockImageUri = 'https://example.com/mock-image.jpg';
+    setSelectedImage(mockImageUri);
+  };
+
+  const handleImageUpload = async () => {
+    if (!selectedImage || !user) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No image selected or user not logged in'
+      });
+      return;
+    }
+
+    try {
+      const publicUrl = await uploadImage(selectedImage, user.id);
+      
+      // TODO: Save publicUrl to user's profile in the database
+      // This would typically involve updating a profiles table with the image URL
+      
+      toast({
+        title: 'Image Uploaded',
+        description: 'Your apartment photo has been uploaded successfully'
+      });
+
+      // Clear the selected image after upload
+      setSelectedImage(null);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed',
+        description: 'There was an issue uploading your image'
+      });
+    }
   };
   
   return (
@@ -294,6 +334,30 @@ const Profile = () => {
             </div>
           </TabsContent>
         </Tabs>
+      
+      {/* New image upload section */}
+      <div className="space-y-4">
+        <Button onClick={handleImagePick} variant="outline">
+          <ImagePlus className="mr-2 h-4 w-4" />
+          Pick Image
+        </Button>
+        
+        {selectedImage && (
+          <div className="mt-4">
+            <img 
+              src={selectedImage} 
+              alt="Selected" 
+              className="max-w-full h-auto rounded-md"
+            />
+            <Button 
+              onClick={handleImageUpload} 
+              className="mt-2"
+            >
+              Upload Image
+            </Button>
+          </div>
+        )}
+      </div>
         
         <div className="flex flex-col gap-2 md:gap-3 pt-3 md:pt-4 mt-4">
           <Button 
