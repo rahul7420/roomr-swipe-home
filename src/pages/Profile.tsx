@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -217,11 +217,11 @@ const Profile = () => {
                   </div>
                   <div className="flex justify-between text-xs md:text-sm">
                     <div className="flex items-center">
-                      <Rupeesign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
+                      <span className="mr-0.5 md:mr-1">₹</span>
                       <span>{budgetRange[0]}</span>
                     </div>
                     <div className="flex items-center">
-                      <DollarSign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
+                      <span className="mr-0.5 md:mr-1">₹</span>
                       <span>{budgetRange[1]}</span>
                     </div>
                   </div>
@@ -334,7 +334,6 @@ const Profile = () => {
           </TabsContent>
         </Tabs>
       
-      {/* New image upload section */}
       <div className="space-y-4">
         <Button onClick={handleImagePick} variant="outline">
           <ImagePlus className="mr-2 h-4 w-4" />
