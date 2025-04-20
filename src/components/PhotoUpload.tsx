@@ -7,7 +7,8 @@ import {
   Trash2, 
   Loader2, 
   Image as ImageIcon, 
-  X
+  X,
+  Upload
 } from 'lucide-react';
 import {
   Dialog,
@@ -29,6 +30,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { uploadImage } from '@/services/uploadImage';
 
 interface PhotoUploadProps {
   existingPhotos?: string[];
@@ -137,49 +139,67 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
   };
   
   const handleUploadPhotos = async () => {
-    // Placeholder for actual upload logic
+    if (!photoUploads.length) return;
+    
     setIsUploading(true);
     
-    // Mock upload delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // In a real app, this would upload to Supabase Storage
-    // const uploadedUrls = await Promise.all(
-    //   photoUploads.map(async (photo) => {
-    //     const filePath = `apartments/${apartment.id}/${photo.id}-${photo.file.name}`;
-    //     const { data, error } = await supabase
-    //       .storage
-    //       .from('apartment-photos')
-    //       .upload(filePath, photo.file);
-    //       
-    //     if (error) throw error;
-    //     
-    //     // Return the URL of the uploaded file
-    //     return supabase.storage.from('apartment-photos').getPublicUrl(filePath).data.publicUrl;
-    //   })
-    // );
-    
-    // Simulate successful upload
-    const simulatedUrls = photoUploads.map(photo => 
-      `https://example.com/fake-storage/${photo.id}-${photo.file.name}`
-    );
-    
-    // Combine existing and new photos
-    const allPhotos = [...existingPhotosList, ...simulatedUrls];
-    
-    // Call onPhotosChange with the updated photo list
-    if (onPhotosChange) {
-      onPhotosChange(allPhotos);
+    try {
+      // Get the user ID from localStorage or your auth context
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = user.id || 'anonymous';
+      
+      // Upload each photo to Supabase storage
+      const uploadPromises = photoUploads.map(async (photo) => {
+        try {
+          // Convert File to data URL for our upload function
+          const reader = new FileReader();
+          const dataUrl = await new Promise<string>((resolve) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(photo.file);
+          });
+          
+          // Upload to Supabase
+          const publicUrl = await uploadImage(dataUrl, userId);
+          return publicUrl;
+        } catch (error) {
+          console.error(`Error uploading ${photo.name}:`, error);
+          toast({
+            variant: "destructive",
+            title: "Upload failed",
+            description: `Failed to upload ${photo.name}.`,
+          });
+          return null;
+        }
+      });
+      
+      const uploadedUrls = (await Promise.all(uploadPromises)).filter(Boolean) as string[];
+      
+      // Combine existing and new photos
+      const allPhotos = [...existingPhotosList, ...uploadedUrls];
+      
+      // Call onPhotosChange with the updated photo list
+      if (onPhotosChange) {
+        onPhotosChange(allPhotos);
+      }
+      
+      toast({
+        title: `${uploadedUrls.length} ${uploadedUrls.length === 1 ? 'Photo' : 'Photos'} uploaded`,
+        description: "Your apartment photos have been uploaded successfully.",
+      });
+      
+      setPhotoUploads([]);
+      setExistingPhotosList(allPhotos);
+      setDialogOpen(false);
+    } catch (error) {
+      console.error('Error in handleUploadPhotos:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: "There was a problem uploading your photos.",
+      });
+    } finally {
+      setIsUploading(false);
     }
-    
-    setIsUploading(false);
-    setPhotoUploads([]);
-    setDialogOpen(false);
-    
-    toast({
-      title: "Photos uploaded",
-      description: `Successfully uploaded ${photoUploads.length} photos.`,
-    });
   };
   
   const totalPhotos = photoUploads.length + existingPhotosList.length;
@@ -201,7 +221,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               Add Photos
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md w-[90vw] max-h-[90vh] overflow-auto p-4 md:p-6">
+          <DialogContent className="sm:max-w-md w-[90vw] max-h-[90vh] overflow-y-auto p-4 md:p-6">
             <DialogHeader>
               <DialogTitle>Upload Photos</DialogTitle>
               <DialogDescription>
@@ -233,20 +253,20 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               {photoUploads.length > 0 && (
                 <div className="space-y-2">
                   <Label>Selected Photos ({photoUploads.length})</Label>
-                  <ScrollArea className="h-[40vh] rounded-md border p-2">
+                  <ScrollArea className="h-[35vh] md:h-[40vh] rounded-md border p-2">
                     <div className="space-y-3">
                       {photoUploads.map((photo) => (
-                        <div key={photo.id} className="flex items-start gap-2 pb-3">
-                          <div className="relative h-16 w-16 flex-shrink-0 rounded-md overflow-hidden border">
+                        <div key={photo.id} className="flex items-start gap-2 pb-3 flex-col sm:flex-row">
+                          <div className="relative h-20 w-20 flex-shrink-0 rounded-md overflow-hidden border">
                             <img 
                               src={photo.preview} 
                               alt={photo.name}
                               className="h-full w-full object-cover"
                             />
                           </div>
-                          <div className="flex-1 space-y-1 min-w-0">
+                          <div className="flex-1 space-y-2 min-w-0 w-full sm:w-auto">
                             <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium truncate">{photo.name}</p>
+                              <p className="text-sm font-medium truncate max-w-[160px] sm:max-w-full">{photo.name}</p>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -260,7 +280,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                               value={photo.room}
                               onValueChange={(value) => handleRoomTypeChange(photo.id, value)}
                             >
-                              <SelectTrigger className="h-7 text-xs">
+                              <SelectTrigger className="h-8 text-xs w-full">
                                 <SelectValue placeholder="Select room type" />
                               </SelectTrigger>
                               <SelectContent>
@@ -279,18 +299,11 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                 </div>
               )}
               
-              <div className="flex flex-col sm:flex-row gap-2 mt-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setDialogOpen(false)}
-                  className="w-full order-2 sm:order-1"
-                >
-                  Cancel
-                </Button>
+              <div className="flex flex-col gap-2 mt-4">
                 <Button 
                   onClick={handleUploadPhotos}
                   disabled={photoUploads.length === 0 || isUploading}
-                  className="w-full order-1 sm:order-2"
+                  className="w-full h-10 md:h-11"
                 >
                   {isUploading ? (
                     <>
@@ -299,9 +312,18 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                     </>
                   ) : (
                     <>
-                      Upload {photoUploads.length} Photos
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload {photoUploads.length} {photoUploads.length === 1 ? 'Photo' : 'Photos'}
                     </>
                   )}
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => setDialogOpen(false)}
+                  className="w-full h-10 md:h-11"
+                >
+                  Cancel
                 </Button>
               </div>
             </div>
@@ -310,7 +332,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
       </div>
       
       {/* Display existing photos */}
-      {existingPhotosList.length > 0 || photoUploads.length > 0 ? (
+      {existingPhotosList.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
           {existingPhotosList.map((photoUrl, index) => (
             <div key={`existing-${index}`} className="relative aspect-square group rounded-md overflow-hidden border">
