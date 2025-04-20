@@ -349,7 +349,7 @@ const Feed = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Price Range ($/month)</Label>
+                      <Label>Price Range (₹/month)</Label>
                       <div className="pt-4">
                         <Slider 
                           value={priceRange} 
@@ -360,8 +360,8 @@ const Feed = () => {
                         />
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>${priceRange[0]}</span>
-                        <span>${priceRange[1]}</span>
+                        <span>₹{priceRange[0]}</span>
+                        <span>₹{priceRange[1]}</span>
                       </div>
                     </div>
                     
