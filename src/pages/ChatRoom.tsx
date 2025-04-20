@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { format } from 'date-fns';
 
-// Mock interfaces - would be replaced with proper types from Supabase
 interface Message {
   id: string;
   content: string;
@@ -43,9 +41,7 @@ const ChatRoom = () => {
   const [partner, setPartner] = useState<ChatPartner | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Mock data loading - would be replaced with Supabase query
   useEffect(() => {
-    // Simulate API call to get chat data
     setTimeout(() => {
       setPartner({
         id: '123',
@@ -59,14 +55,14 @@ const ChatRoom = () => {
         {
           id: '1',
           content: 'Hi there! I saw that we both matched with the Downtown Loft apartment.',
-          senderId: '123', // partner's ID
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+          senderId: '123',
+          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
           isRead: true
         },
         {
           id: '2',
           content: 'Hey Jessica! Yes, I really liked the location and amenities. Are you still interested in it?',
-          senderId: user?.id || '', // current user's ID
+          senderId: user?.id || '',
           timestamp: new Date(Date.now() - 23 * 60 * 60 * 1000),
           isRead: true
         },
@@ -88,7 +84,7 @@ const ChatRoom = () => {
           id: '5',
           content: 'What time would you be free to see the apartment?',
           senderId: '123',
-          timestamp: new Date(Date.now() - 30 * 60 * 1000),
+          timestamp: new Date(Date.now() - 30 * 60 * 60 * 1000),
           isRead: false
         }
       ];
@@ -98,7 +94,6 @@ const ChatRoom = () => {
     }, 1500);
   }, [id, user?.id]);
   
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -106,7 +101,6 @@ const ChatRoom = () => {
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
     
-    // In a real app, this would send the message to Supabase
     const newMsg: Message = {
       id: Date.now().toString(),
       content: newMessage,
@@ -119,7 +113,6 @@ const ChatRoom = () => {
     setNewMessage('');
   };
   
-  // Format the date for message timestamps
   const formatMessageDate = (date: Date) => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -214,7 +207,7 @@ const ChatRoom = () => {
               </div>
             ))}
           </div>
-        ) : (
+        ) : messages.length > 0 ? (
           <div className="space-y-4">
             {messages.map((message, index) => {
               const isCurrentUser = message.senderId === user?.id;
@@ -249,6 +242,14 @@ const ChatRoom = () => {
               );
             })}
             <div ref={messagesEndRef} />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No messages yet</h3>
+            <p className="text-muted-foreground">
+              Start the conversation by sending a message below!
+            </p>
           </div>
         )}
       </main>

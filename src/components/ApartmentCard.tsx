@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Home, 
   MapPin, 
@@ -8,9 +9,11 @@ import {
   Wifi, 
   BedDouble, 
   ChevronLeft, 
-  ChevronRight 
+  ChevronRight,
+  MessageSquare 
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 export interface Apartment {
   id: string;
@@ -36,6 +39,7 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
   const minSwipeDistance = 50;
   
@@ -85,6 +89,16 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
   });
 
   const imageHeight = isMobile ? "h-[80vh]" : "h-[85vh]";
+
+  const handleViewApartment = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    navigate(`/apartments/${apartment.id}`);
+  };
+
+  const handleMessage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    navigate(`/messages/apartment/${apartment.id}`);
+  };
 
   return (
     <Card className="swipe-card w-full overflow-hidden">
@@ -176,6 +190,26 @@ const ApartmentCard: React.FC<ApartmentCardProps> = ({ apartment, onSwipe }) => 
         <p className="text-sm md:text-base text-muted-foreground line-clamp-2">
           {apartment.description}
         </p>
+
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          <Button 
+            variant="outline"
+            size={isMobile ? "sm" : "default"}
+            onClick={handleViewApartment}
+            className="w-full"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            View Apartment
+          </Button>
+          <Button
+            size={isMobile ? "sm" : "default"}
+            onClick={handleMessage}
+            className="w-full"
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Message
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
