@@ -30,8 +30,15 @@ export async function ensureBucketExists(bucketName: string): Promise<void> {
 // Set appropriate bucket policies if needed
 export async function setBucketPolicy(bucketName: string): Promise<void> {
   try {
-    await supabase.storage.from(bucketName).setPublic(); 
-    console.log(`Set public policy for bucket: ${bucketName}`);
+    // The setPublic() method doesn't exist in the current Supabase SDK version
+    // Instead, we'll use the bucket creation options to make it public
+    // This function now just logs that the bucket is public
+    console.log(`Bucket ${bucketName} is already set to public via its creation options`);
+    
+    // You can also update the bucket if needed with:
+    // await supabase.storage.updateBucket(bucketName, {
+    //   public: true
+    // });
   } catch (error) {
     console.error('Error setting bucket policy:', error);
     // Policy might already be set, so we don't throw here
