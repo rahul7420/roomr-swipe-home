@@ -1,34 +1,50 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
-import { ensureBucketExists, setBucketPolicy } from './supabaseStorage';
+import { toast } from '@/hooks/use-toast';
 
 const BUCKET_NAME = 'apartment-photos';
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
 export async function uploadImage(imageUri: string, userId: string) {
   try {
     console.log('Starting image upload process');
     
-    // Ensure the bucket exists before uploading
-    await ensureBucketExists(BUCKET_NAME);
-    
-    // For data URIs (from file inputs), we need to handle them differently
+    // Validate file size and type before upload
     let blob: Blob;
     
     if (imageUri.startsWith('data:')) {
-      // Handle data URI (from file input)
-      console.log('Handling data URI');
       const base64Data = imageUri.split(',')[1];
       const mimeType = imageUri.split(';')[0].split(':')[1];
+      
+      // Validate file type
+      if (!ALLOWED_FILE_TYPES.includes(mimeType)) {
+        throw new Error(`Unsupported file type: ${mimeType}. Allowed types: ${ALLOWED_FILE_TYPES.join(', ')}`);
+      }
+      
       blob = await fetch(`data:${mimeType};base64,${base64Data}`).then(res => res.blob());
+      
+      // Validate file size
+      if (blob.size > MAX_FILE_SIZE) {
+        throw new Error(`File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`);
+      }
     } else {
-      // Handle URL (from image picker or other sources)
-      console.log('Handling image URL');
       const response = await fetch(imageUri);
       if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
       }
+      
       blob = await response.blob();
+      
+      // Validate file type and size for URL-based uploads
+      if (!ALLOWED_FILE_TYPES.includes(blob.type)) {
+        throw new Error(`Unsupported file type: ${blob.type}. Allowed types: ${ALLOWED_FILE_TYPES.join(', ')}`);
+      }
+      
+      if (blob.size > MAX_FILE_SIZE) {
+        throw new Error(`File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`);
+      }
     }
     
     // Generate a unique filename
@@ -63,6 +79,16 @@ export async function uploadImage(imageUri: string, userId: string) {
     return publicUrl;
   } catch (error) {
     console.error('Unexpected error in uploadImage:', error);
+    
+    // Detailed error handling with toast notifications
+    if (error instanceof Error) {
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed',
+        description: error.message
+      });
+    }
+    
     throw error;
   }
 }
