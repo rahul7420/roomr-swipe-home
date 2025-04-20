@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/use-toast'; // Changed from useToast to toast import
 import { Loader2, Camera, DollarSign, User, Home, LogOut, PlusCircle, X, ImagePlus } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -48,7 +48,6 @@ const Profile = () => {
   const [apartmentPhotos, setApartmentPhotos] = useState<string[]>([]);
   const isMobile = useIsMobile();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const { toast } = useToast();
 
   const getInitials = (name: string) => {
     return name
