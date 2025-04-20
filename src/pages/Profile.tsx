@@ -217,7 +217,7 @@ const Profile = () => {
                   </div>
                   <div className="flex justify-between text-xs md:text-sm">
                     <div className="flex items-center">
-                      <DollarSign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
+                      <Rupeesign className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
                       <span>{budgetRange[0]}</span>
                     </div>
                     <div className="flex items-center">
