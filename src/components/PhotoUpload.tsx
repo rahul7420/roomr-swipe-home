@@ -1,12 +1,12 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { 
-  ImagePlus, 
-  Trash2, 
-  Loader2, 
-  Image as ImageIcon, 
+import {
+  ImagePlus,
+  Trash2,
+  Loader2,
+  Image as ImageIcon,
   X,
   Upload
 } from 'lucide-react';
@@ -26,14 +26,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { uploadImage } from '@/services/uploadImage';
+// Import supabase client for DB reads and deletes
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
 
 interface PhotoUploadProps {
-  existingPhotos?: string[];
+  // Remove "existingPhotos", now fetch for the user
+  userId?: string;
   onPhotosChange?: (photos: string[]) => void;
   maxPhotos?: number;
   disabled?: boolean;
@@ -48,40 +50,82 @@ interface PhotoPreview {
   room?: string;
 }
 
+interface DBPhoto {
+  id: string;
+  photo_url: string;
+  created_at: string;
+}
+
 const PhotoUpload: React.FC<PhotoUploadProps> = ({
-  existingPhotos = [],
+  userId,
   onPhotosChange,
   maxPhotos = 10,
   disabled = false,
 }) => {
   const [photoUploads, setPhotoUploads] = useState<PhotoPreview[]>([]);
-  const [existingPhotosList, setExistingPhotosList] = useState<string[]>(existingPhotos);
+  const [uploadedPhotos, setUploadedPhotos] = useState<DBPhoto[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  
-  // Room type options - updated for Indian context
+
   const roomTypes = [
-    "Living Room", 
-    "Bedroom", 
-    "Kitchen", 
-    "Bathroom", 
-    "Balcony", 
+    "Living Room",
+    "Bedroom",
+    "Kitchen",
+    "Bathroom",
+    "Balcony",
     "PG Common Area",
     "Study Area",
     "Exterior View",
     "Hostel Room"
   ];
-  
+
+  // Fetch user's apartment photos from DB
+  const fetchPhotos = async () => {
+    if (!userId) return;
+    const { data, error } = await supabaseClient
+      .from("apartment_photos")
+      .select("id, photo_url, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error loading photos",
+        description: error.message,
+      });
+      setUploadedPhotos([]);
+    } else {
+      setUploadedPhotos(data || []);
+      if (onPhotosChange) {
+        onPhotosChange(data?.map((p: DBPhoto) => p.photo_url) || []);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchPhotos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // On dialog close, reset photoUploads and reload DB photos
+  useEffect(() => {
+    if (!dialogOpen) {
+      setPhotoUploads([]);
+      fetchPhotos();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialogOpen]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
     if (!selectedFiles || selectedFiles.length === 0) return;
-    
-    const totalPhotos = photoUploads.length + existingPhotosList.length;
+
+    const totalPhotos = photoUploads.length + uploadedPhotos.length;
     const remainingSlots = maxPhotos - totalPhotos;
-    
+
     if (remainingSlots <= 0) {
       toast({
         variant: "destructive",
@@ -90,11 +134,9 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
       });
       return;
     }
-    
-    // Convert FileList to array and limit to remaining slots
+
     const filesToAdd = Array.from(selectedFiles).slice(0, remainingSlots);
-    
-    // Add new photos to the photoUploads array
+
     const newPhotoUploads = filesToAdd.map(file => ({
       id: Math.random().toString(36).substring(2, 9),
       file,
@@ -102,118 +144,107 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
       name: file.name,
       room: undefined,
     }));
-    
+
     setPhotoUploads(prev => [...prev, ...newPhotoUploads]);
-    
-    // Reset the file input
+
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
-  
+
   const handleRemovePhoto = (id: string) => {
-    setPhotoUploads(prev => {
-      const updatedUploads = prev.filter(photo => photo.id !== id);
-      return updatedUploads;
-    });
+    setPhotoUploads(prev => prev.filter(photo => photo.id !== id));
   };
-  
-  const handleRemoveExistingPhoto = (url: string) => {
-    setExistingPhotosList(prev => {
-      const updatedPhotos = prev.filter(photo => photo !== url);
-      return updatedPhotos;
-    });
-    
-    // If onPhotosChange is provided, call it with the updated photos
-    if (onPhotosChange) {
-      onPhotosChange(existingPhotosList.filter(photo => photo !== url));
+
+  // Remove a photo both from DB and storage
+  const handleRemoveUploadedPhoto = async (photo: DBPhoto) => {
+    if (!userId) return;
+    setIsUploading(true);
+    try {
+      // First, delete DB row to enforce RLS
+      const { error: dbErr } = await supabaseClient
+        .from('apartment_photos')
+        .delete()
+        .eq('id', photo.id)
+        .eq('user_id', userId);
+      if (dbErr) throw dbErr;
+
+      // Second, try deleting actual storage object
+      // Extract storage path from URL: after /object/apartment-photos/
+      const match = photo.photo_url.match(/apartment-photos\/(.+)$/);
+      if (match?.[1]) {
+        await supabaseClient.storage.from('apartment-photos').remove([match[1]]);
+      }
+
+      toast({ title: "Photo deleted", description: "Your photo was removed." });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Delete failed", description: err.message || "Error deleting photo" });
     }
+    setIsUploading(false);
+    fetchPhotos();
   };
-  
+
   const handleRoomTypeChange = (id: string, roomType: string) => {
-    setPhotoUploads(prev => 
-      prev.map(photo => 
+    setPhotoUploads(prev =>
+      prev.map(photo =>
         photo.id === id ? { ...photo, room: roomType } : photo
       )
     );
   };
-  
+
   const handleUploadPhotos = async () => {
-    if (!photoUploads.length) return;
-    
+    if (!photoUploads.length || !userId) return;
+
     setIsUploading(true);
-    
-    try {
-      // Get the user ID from localStorage or your auth context
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userId = user.id || 'anonymous';
-      
-      // Upload each photo to Supabase storage
-      const uploadPromises = photoUploads.map(async (photo) => {
-        try {
-          // Convert File to data URL for our upload function
-          const reader = new FileReader();
-          const dataUrl = await new Promise<string>((resolve) => {
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(photo.file);
-          });
-          
-          // Upload to Supabase
-          const publicUrl = await uploadImage(dataUrl, userId);
-          return publicUrl;
-        } catch (error) {
-          console.error(`Error uploading ${photo.name}:`, error);
-          toast({
-            variant: "destructive",
-            title: "Upload failed",
-            description: `Failed to upload ${photo.name}.`,
-          });
-          return null;
-        }
-      });
-      
-      const uploadedUrls = (await Promise.all(uploadPromises)).filter(Boolean) as string[];
-      
-      // Combine existing and new photos
-      const allPhotos = [...existingPhotosList, ...uploadedUrls];
-      
-      // Call onPhotosChange with the updated photo list
-      if (onPhotosChange) {
-        onPhotosChange(allPhotos);
+    let uploadedCount = 0;
+    let failedCount = 0;
+
+    for (const photo of photoUploads) {
+      try {
+        const reader = new FileReader();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(photo.file);
+        });
+
+        await uploadImage(dataUrl, userId);
+        uploadedCount++;
+      } catch (error: any) {
+        failedCount++;
+        toast({
+          variant: "destructive",
+          title: `Failed: ${photo.name}`,
+          description: error?.message || "Photo upload failed",
+        });
       }
-      
-      toast({
-        title: `${uploadedUrls.length} ${uploadedUrls.length === 1 ? 'Photo' : 'Photos'} uploaded`,
-        description: "Your apartment photos have been uploaded successfully.",
-      });
-      
-      setPhotoUploads([]);
-      setExistingPhotosList(allPhotos);
-      setDialogOpen(false);
-    } catch (error) {
-      console.error('Error in handleUploadPhotos:', error);
-      toast({
-        variant: "destructive",
-        title: "Upload failed",
-        description: "There was a problem uploading your photos.",
-      });
-    } finally {
-      setIsUploading(false);
     }
+
+    if (uploadedCount > 0) {
+      toast({
+        title: `${uploadedCount} ${uploadedCount === 1 ? 'Photo' : 'Photos'} uploaded`,
+        description: "Your apartment photo(s) have been uploaded successfully.",
+      });
+    }
+
+    setIsUploading(false);
+    setPhotoUploads([]);
+    setDialogOpen(false);
+    fetchPhotos();
   };
-  
-  const totalPhotos = photoUploads.length + existingPhotosList.length;
+
+  const totalPhotos = photoUploads.length + uploadedPhotos.length;
   const photosRemaining = maxPhotos - totalPhotos;
-  
+
   return (
     <div className="w-full space-y-3">
       <div className="flex flex-wrap items-center justify-between mb-1">
         <Label className="text-sm md:text-base font-medium">Photos ({totalPhotos}/{maxPhotos})</Label>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button 
+            <Button
               size={isMobile ? "sm" : "default"}
-              variant="outline" 
+              variant="outline"
               className="flex items-center gap-1"
               disabled={disabled || photosRemaining <= 0}
             >
@@ -230,8 +261,8 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={photosRemaining <= 0}
@@ -249,7 +280,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                   disabled={photosRemaining <= 0}
                 />
               </div>
-              
+
               {photoUploads.length > 0 && (
                 <div className="space-y-2">
                   <Label>Selected Photos ({photoUploads.length})</Label>
@@ -258,8 +289,8 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                       {photoUploads.map((photo) => (
                         <div key={photo.id} className="flex items-start gap-2 pb-3 flex-col sm:flex-row">
                           <div className="relative h-20 w-20 flex-shrink-0 rounded-md overflow-hidden border">
-                            <img 
-                              src={photo.preview} 
+                            <img
+                              src={photo.preview}
                               alt={photo.name}
                               className="h-full w-full object-cover"
                             />
@@ -298,9 +329,9 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                   </ScrollArea>
                 </div>
               )}
-              
+
               <div className="flex flex-col gap-2 mt-4">
-                <Button 
+                <Button
                   onClick={handleUploadPhotos}
                   disabled={photoUploads.length === 0 || isUploading}
                   className="w-full h-10 md:h-11"
@@ -317,9 +348,9 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                     </>
                   )}
                 </Button>
-                
-                <Button 
-                  variant="outline" 
+
+                <Button
+                  variant="outline"
                   onClick={() => setDialogOpen(false)}
                   className="w-full h-10 md:h-11"
                 >
@@ -330,23 +361,24 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
           </DialogContent>
         </Dialog>
       </div>
-      
-      {/* Display existing photos */}
-      {existingPhotosList.length > 0 ? (
+
+      {/* Display existing uploaded photos */}
+      {uploadedPhotos.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {existingPhotosList.map((photoUrl, index) => (
-            <div key={`existing-${index}`} className="relative aspect-square group rounded-md overflow-hidden border">
-              <img 
-                src={photoUrl} 
+          {uploadedPhotos.map((photo, index) => (
+            <div key={photo.id} className="relative aspect-square group rounded-md overflow-hidden border">
+              <img
+                src={photo.photo_url}
                 alt={`Apartment photo ${index + 1}`}
                 className="h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="icon"
-                  className="h-8 w-8" 
-                  onClick={() => handleRemoveExistingPhoto(photoUrl)}
+                  className="h-8 w-8"
+                  onClick={() => handleRemoveUploadedPhoto(photo)}
+                  disabled={isUploading}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

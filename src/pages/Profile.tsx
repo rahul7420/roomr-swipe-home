@@ -92,9 +92,6 @@ const Profile = () => {
   
   const handlePhotosChange = (photos: string[]) => {
     setApartmentPhotos(photos);
-    
-    // In a real app, this would save the photo URLs to the user's profile
-    // in the Supabase database
     toast({
       title: "Photos updated",
       description: "Your apartment photos have been updated.",
@@ -302,8 +299,8 @@ const Profile = () => {
                   Apartment Photos
                 </div>
               </h2>
-              <PhotoUpload 
-                existingPhotos={apartmentPhotos}
+              <PhotoUpload
+                userId={user?.id}
                 onPhotosChange={handlePhotosChange}
                 maxPhotos={8}
               />

@@ -7,24 +7,26 @@ const BUCKET_NAME = 'apartment-photos';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-export async function uploadImage(imageUri: string, userId: string) {
+// We now need supabase from /integrations/supabase/client for DB actions
+import { supabase as supabaseClient } from '@/integrations/supabase/client';
+
+export async function uploadImage(imageUri: string, userId: string): Promise<string | null> {
   try {
     console.log('Starting image upload process');
-    
-    // Validate file size and type before upload
+
     let blob: Blob;
-    
+
     if (imageUri.startsWith('data:')) {
       const base64Data = imageUri.split(',')[1];
       const mimeType = imageUri.split(';')[0].split(':')[1];
-      
+
       // Validate file type
       if (!ALLOWED_FILE_TYPES.includes(mimeType)) {
         throw new Error(`Unsupported file type: ${mimeType}. Allowed types: ${ALLOWED_FILE_TYPES.join(', ')}`);
       }
-      
+
       blob = await fetch(`data:${mimeType};base64,${base64Data}`).then(res => res.blob());
-      
+
       // Validate file size
       if (blob.size > MAX_FILE_SIZE) {
         throw new Error(`File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`);
@@ -34,25 +36,25 @@ export async function uploadImage(imageUri: string, userId: string) {
       if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
       }
-      
+
       blob = await response.blob();
-      
+
       // Validate file type and size for URL-based uploads
       if (!ALLOWED_FILE_TYPES.includes(blob.type)) {
         throw new Error(`Unsupported file type: ${blob.type}. Allowed types: ${ALLOWED_FILE_TYPES.join(', ')}`);
       }
-      
+
       if (blob.size > MAX_FILE_SIZE) {
         throw new Error(`File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`);
       }
     }
-    
+
     // Generate a unique filename
     const fileExt = blob.type.split('/')[1] || 'jpg';
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
-    
+
     console.log(`Uploading to ${BUCKET_NAME}/${fileName}`);
-    
+
     // Upload to Supabase storage
     const { data, error } = await supabase.storage
       .from(BUCKET_NAME)
@@ -68,19 +70,34 @@ export async function uploadImage(imageUri: string, userId: string) {
     }
 
     console.log('Upload successful, getting public URL');
-    
-    // Get public URL
+
     const { data: { publicUrl } } = supabase.storage
       .from(BUCKET_NAME)
       .getPublicUrl(fileName);
 
+    // Insert a row into apartment_photos table with userId + publicUrl
+    if (publicUrl && userId) {
+      const { error: dbError } = await supabaseClient
+        .from('apartment_photos')
+        .insert({
+          user_id: userId,
+          photo_url: publicUrl,
+        });
+
+      if (dbError) {
+        console.error("Failed to insert photo into DB:", dbError.message);
+        // Delete storage object if db write fails for consistency (optional)
+        // await supabase.storage.from(BUCKET_NAME).remove([fileName]);
+        throw new Error("Uploaded file but failed to save to database: " + dbError.message);
+      }
+    }
+
     console.log('Public URL:', publicUrl);
-    
+
     return publicUrl;
   } catch (error) {
     console.error('Unexpected error in uploadImage:', error);
-    
-    // Detailed error handling with toast notifications
+
     if (error instanceof Error) {
       toast({
         variant: 'destructive',
@@ -88,7 +105,7 @@ export async function uploadImage(imageUri: string, userId: string) {
         description: error.message
       });
     }
-    
+
     throw error;
   }
 }
