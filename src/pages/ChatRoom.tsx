@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send, Info, Image } from 'lucide-react';
+import { ArrowLeft, Send, Info, Image, MessageSquare } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
