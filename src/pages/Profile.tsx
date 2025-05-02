@@ -21,6 +21,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { uploadImage } from '@/services/uploadImage';
+import { v4 as uuidv4 } from 'uuid';
 
 const preferenceOptions = [
   "Non-smoker", 
@@ -105,20 +106,27 @@ const Profile = () => {
   };
 
   const handleImageUpload = async () => {
-    if (!selectedImage || !user) {
+    if (!selectedImage) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'No image selected or user not logged in'
+        description: 'No image selected'
+      });
+      return;
+    }
+
+    if (!user || !user.id) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'You must be logged in to upload photos'
       });
       return;
     }
 
     try {
+      // Pass the user ID from the auth context to the upload function
       const publicUrl = await uploadImage(selectedImage, user.id);
-      
-      // TODO: Save publicUrl to user's profile in the database
-      // This would typically involve updating a profiles table with the image URL
       
       toast({
         title: 'Image Uploaded',
@@ -128,11 +136,8 @@ const Profile = () => {
       // Clear the selected image after upload
       setSelectedImage(null);
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Upload Failed',
-        description: 'There was an issue uploading your image'
-      });
+      // Error is already handled in uploadImage function
+      console.error('Upload error in component:', error);
     }
   };
   

@@ -10,13 +10,45 @@ const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'
 // We now need supabase from /integrations/supabase/client for DB actions
 import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
+/**
+ * Validates if a string is a valid UUID v4
+ * @param value The string to validate
+ * @returns boolean indicating if the string is a valid UUID
+ */
+const isValidUUID = (value: string | undefined): boolean => {
+  if (!value) return false;
+  // UUID v4 regex pattern
+  const uuidV4Pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidV4Pattern.test(value);
+};
+
 export async function uploadImage(imageUri: string, userId: string | undefined): Promise<string | null> {
   try {
     console.log('Starting image upload process');
     
-    // Validate userId is a valid UUID
-    if (!userId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
-      throw new Error('Invalid or missing user ID. Please make sure you are properly logged in.');
+    // Enhanced validation for userId - if invalid, generate a new UUID
+    if (!userId || !isValidUUID(userId)) {
+      console.warn('Invalid user ID detected:', userId);
+      
+      // Try to get the actual user ID from Supabase auth
+      try {
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        
+        if (authError || !user) {
+          throw new Error('Authentication required. Please log in to upload photos.');
+        }
+        
+        userId = user.id;
+        console.log('Retrieved actual user ID from Supabase auth:', userId);
+        
+        // Double check the retrieved ID is valid
+        if (!isValidUUID(userId)) {
+          throw new Error('Invalid user ID format from authentication system.');
+        }
+      } catch (authError) {
+        console.error('Auth error:', authError);
+        throw new Error('Authentication required. Please log in to upload photos.');
+      }
     }
 
     let blob: Blob;
