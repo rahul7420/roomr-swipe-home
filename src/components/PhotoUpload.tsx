@@ -29,6 +29,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { uploadImage } from '@/services/uploadImage';
 // Import supabase client for DB reads and deletes
@@ -72,7 +73,8 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [retryQueue, setRetryQueue] = useState<PhotoPreview[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  // Fix: Remove this line as we're now importing useToast directly
+  // const { toast } = useToast();
   const isMobile = useIsMobile();
 
   const roomTypes = [
