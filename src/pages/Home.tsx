@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Building, Users, MessageSquare, Plus, Star } from 'lucide-react';
+import { Loader2, Building, Users, MessageSquare, Plus, Star, Image } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import { Apartment } from '@/components/ApartmentCard';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/integrations/supabase/client';
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 
 // Updated mock data for Indian student apartments
 const mockApartments: Apartment[] = [
@@ -88,10 +89,19 @@ const mockMatches: Match[] = [
   }
 ];
 
+interface ApartmentPhoto {
+  id: string;
+  photo_url: string;
+  user_id: string;
+  created_at: string;
+}
+
 const Home = () => {
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<Apartment[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [photos, setPhotos] = useState<ApartmentPhoto[]>([]);
+  const [photosLoading, setPhotosLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -104,6 +114,36 @@ const Home = () => {
       setLoading(false);
     }, 1500);
   }, []);
+  
+  useEffect(() => {
+    const fetchUserPhotos = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setPhotosLoading(true);
+        const { data, error } = await supabase
+          .from('apartment_photos')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching apartment photos:', error);
+          return;
+        }
+        
+        setPhotos(data || []);
+      } catch (error) {
+        console.error('Error fetching photos:', error);
+      } finally {
+        setPhotosLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      fetchUserPhotos();
+    }
+  }, [user?.id]);
   
   if (loading) {
     return (
@@ -159,6 +199,57 @@ const Home = () => {
             Discover Apartments
           </Button>
         </div>
+      </div>
+      
+      {/* My Apartment Photos Section */}
+      <div className="px-3 md:px-4 pt-4 max-w-screen-lg mx-auto">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg md:text-xl font-semibold">My Apartment Photos</h2>
+        </div>
+        
+        {photosLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : photos.length > 0 ? (
+          <Carousel className="w-full mb-6">
+            <CarouselContent>
+              {photos.map((photo) => (
+                <CarouselItem key={photo.id} className="md:basis-1/2 lg:basis-1/3">
+                  <div className="p-1">
+                    <Card className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <img 
+                          src={photo.photo_url} 
+                          alt="Apartment" 
+                          className="w-full h-[200px] object-cover"
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="flex justify-center mt-2">
+              <CarouselPrevious className="relative static translate-y-0 left-0 mr-2" />
+              <CarouselNext className="relative static translate-y-0 right-0" />
+            </div>
+          </Carousel>
+        ) : (
+          <Card className="mb-6">
+            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+              <Image className="h-12 w-12 text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">No apartment photos uploaded yet.</p>
+              <Button 
+                variant="outline" 
+                className="mt-3"
+                onClick={() => navigate('/profile')}
+              >
+                Upload Photos
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
       
       <div className="p-3 md:p-4 max-w-screen-lg mx-auto">
