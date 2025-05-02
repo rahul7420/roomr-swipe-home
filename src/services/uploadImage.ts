@@ -10,9 +10,14 @@ const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'
 // We now need supabase from /integrations/supabase/client for DB actions
 import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
-export async function uploadImage(imageUri: string, userId: string): Promise<string | null> {
+export async function uploadImage(imageUri: string, userId: string | undefined): Promise<string | null> {
   try {
     console.log('Starting image upload process');
+    
+    // Validate userId is a valid UUID
+    if (!userId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
+      throw new Error('Invalid or missing user ID. Please make sure you are properly logged in.');
+    }
 
     let blob: Blob;
 
@@ -76,7 +81,7 @@ export async function uploadImage(imageUri: string, userId: string): Promise<str
       .getPublicUrl(fileName);
 
     // Insert a row into apartment_photos table with userId + publicUrl
-    if (publicUrl && userId) {
+    if (publicUrl) {
       const { error: dbError } = await supabaseClient
         .from('apartment_photos')
         .insert({
