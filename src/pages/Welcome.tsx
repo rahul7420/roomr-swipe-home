@@ -8,13 +8,26 @@ import { Building, Users, MessageSquare } from 'lucide-react';
 
 const Welcome = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (user) {
+    // Only redirect after auth has been checked
+    if (!loading && user) {
       navigate('/home');
     }
-  }, [user, navigate]);
+  }, [user, navigate, loading]);
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <Logo size="lg" />
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-accent overflow-x-hidden">

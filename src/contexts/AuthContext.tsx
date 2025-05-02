@@ -1,9 +1,11 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
 
 // Types
-interface User {
+interface UserData {
   id: string;
   email: string;
   name?: string;
@@ -11,12 +13,13 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: UserData | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (profile: Partial<User>) => Promise<void>;
+  updateProfile: (profile: Partial<UserData>) => Promise<void>;
+  session: Session | null;
 }
 
 // Create context
@@ -24,45 +27,74 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is logged in on mount
   useEffect(() => {
-    // Mock checking for user in localStorage
-    const storedUser = localStorage.getItem('roomr_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        setSession(session);
+        if (session?.user) {
+          const userData: UserData = {
+            id: session.user.id,
+            email: session.user.email || '',
+            profileComplete: Boolean(session.user.user_metadata?.profile_complete),
+            name: session.user.user_metadata?.name as string,
+          };
+          setUser(userData);
+          console.log('User set from auth state change:', userData);
+        } else {
+          setUser(null);
+          console.log('User cleared from auth state change');
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        const userData: UserData = {
+          id: session.user.id,
+          email: session.user.email || '',
+          profileComplete: Boolean(session.user.user_metadata?.profile_complete),
+          name: session.user.user_metadata?.name as string,
+        };
+        setUser(userData);
+        console.log('User set from existing session:', userData);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Mock login function
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
-      // In real implementation, this would call Supabase auth.signIn
-      
-      // Mock successful login for demo
-      const mockUser: User = {
-        id: '123',
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        profileComplete: false
-      };
-      
-      // Save user to state and localStorage
-      setUser(mockUser);
-      localStorage.setItem('roomr_user', JSON.stringify(mockUser));
-      
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: error.message || "Please check your credentials and try again.",
       });
       throw error;
     } finally {
@@ -70,33 +102,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Mock signup function
   const signup = async (email: string, password: string, name?: string) => {
     try {
       setLoading(true);
-      // In real implementation, this would call Supabase auth.signUp
-      
-      // Mock successful signup for demo
-      const mockUser: User = {
-        id: '123',
+      const { data, error } = await supabase.auth.signUp({
         email,
-        name,
-        profileComplete: false
-      };
-      
-      // Save user to state and localStorage
-      setUser(mockUser);
-      localStorage.setItem('roomr_user', JSON.stringify(mockUser));
-      
+        password,
+        options: {
+          data: {
+            name,
+            profile_complete: false,
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Account created",
-        description: "Welcome to Roomr!",
+        description: "Welcome to Roomr! Please check your email to verify your account.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Signup failed",
-        description: "Please try again with a different email.",
+        description: error.message || "Please try again with a different email.",
       });
       throw error;
     } finally {
@@ -104,49 +136,64 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Mock logout function
   const logout = async () => {
     try {
-      // In real implementation, this would call Supabase auth.signOut
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
       
-      // Clear user from state and localStorage
+      if (error) {
+        throw error;
+      }
+      
       setUser(null);
-      localStorage.removeItem('roomr_user');
+      setSession(null);
       
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Logout failed",
-        description: "Please try again.",
+        description: error.message || "Please try again.",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Mock update profile function
-  const updateProfile = async (profile: Partial<User>) => {
+  const updateProfile = async (profile: Partial<UserData>) => {
     try {
       setLoading(true);
       
-      // In real implementation, this would update the user profile in Supabase
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          ...profile,
+          profile_complete: true,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
       
-      // Update user in state and localStorage
-      const updatedUser = { ...user, ...profile };
-      setUser(updatedUser as User);
-      localStorage.setItem('roomr_user', JSON.stringify(updatedUser));
+      // Update local user state
+      setUser((prevUser) => prevUser ? { ...prevUser, ...profile, profileComplete: true } : null);
       
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Profile update failed",
-        description: "Please try again.",
+        description: error.message || "Please try again.",
       });
       throw error;
     } finally {
@@ -160,7 +207,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     signup,
     logout,
-    updateProfile
+    updateProfile,
+    session
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

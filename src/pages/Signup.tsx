@@ -6,29 +6,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import Logo from '@/components/Logo';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from '@/hooks/use-toast';
 
 const Signup = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
 
   const validatePassword = () => {
     if (password !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setError('Passwords do not match');
       return false;
     }
     if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+      setError('Password must be at least 6 characters');
       return false;
     }
-    setPasswordError('');
+    setError(null);
     return true;
   };
 
@@ -40,12 +42,23 @@ const Signup = () => {
     }
     
     setIsSubmitting(true);
+    setError(null);
     
     try {
       await signup(email, password, name);
-      navigate('/onboarding');
-    } catch (error) {
+      // After signup, navigate to onboarding 
+      // or show success message about email verification
+      toast({
+        title: "Sign up successful",
+        description: "Please check your email to verify your account before logging in.",
+      });
+      
+      // For demo purposes, navigate immediately
+      // In production, you might want to show a verification required screen
+      navigate('/login');
+    } catch (error: any) {
       console.error('Signup error:', error);
+      setError(error.message || 'Failed to create account. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -61,6 +74,13 @@ const Signup = () => {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
@@ -103,9 +123,6 @@ const Signup = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
-              {passwordError && (
-                <p className="text-sm text-destructive">{passwordError}</p>
-              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
