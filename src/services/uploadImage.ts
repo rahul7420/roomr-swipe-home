@@ -22,7 +22,7 @@ const isValidUUID = (value: string | undefined): boolean => {
   return uuidV4Pattern.test(value);
 };
 
-export async function uploadImage(imageUri: string, userId: string | undefined): Promise<string | null> {
+export async function uploadImage(imageUri: string, userId: string | undefined, roomType?: string): Promise<string | null> {
   try {
     console.log('Starting image upload process');
     
@@ -112,13 +112,14 @@ export async function uploadImage(imageUri: string, userId: string | undefined):
       .from(BUCKET_NAME)
       .getPublicUrl(fileName);
 
-    // Insert a row into apartment_photos table with userId + publicUrl
+    // Insert a row into apartment_photos table with userId + publicUrl + roomType
     if (publicUrl) {
       const { error: dbError } = await supabaseClient
         .from('apartment_photos')
         .insert({
           user_id: userId,
           photo_url: publicUrl,
+          room_type: roomType || 'Room Photo', // Use provided room type or default
         });
 
       if (dbError) {

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tabs";
 import { uploadImage } from '@/services/uploadImage';
 import { v4 as uuidv4 } from 'uuid';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@radix-ui/react-select';
 
 const preferenceOptions = [
   "Non-smoker", 
@@ -49,6 +50,7 @@ const Profile = () => {
   const [apartmentPhotos, setApartmentPhotos] = useState<string[]>([]);
   const isMobile = useIsMobile();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedRoomType, setSelectedRoomType] = useState<string>("Room Photo");
 
   const getInitials = (name: string) => {
     return name
@@ -125,8 +127,8 @@ const Profile = () => {
     }
 
     try {
-      // Pass the user ID from the auth context to the upload function
-      const publicUrl = await uploadImage(selectedImage, user.id);
+      // Pass the user ID and room type to the upload function
+      const publicUrl = await uploadImage(selectedImage, user.id, selectedRoomType);
       
       toast({
         title: 'Image Uploaded',
@@ -336,28 +338,50 @@ const Profile = () => {
           </TabsContent>
         </Tabs>
       
-      <div className="space-y-4">
-        <Button onClick={handleImagePick} variant="outline">
-          <ImagePlus className="mr-2 h-4 w-4" />
-          Pick Image
-        </Button>
-        
-        {selectedImage && (
-          <div className="mt-4">
-            <img 
-              src={selectedImage} 
-              alt="Selected" 
-              className="max-w-full h-auto rounded-md"
-            />
-            <Button 
-              onClick={handleImageUpload} 
-              className="mt-2"
-            >
-              Upload Image
-            </Button>
-          </div>
-        )}
-      </div>
+        <div className="space-y-4">
+          <Button onClick={handleImagePick} variant="outline">
+            <ImagePlus className="mr-2 h-4 w-4" />
+            Pick Image
+          </Button>
+          
+          {selectedImage && (
+            <div className="mt-4">
+              <img 
+                src={selectedImage} 
+                alt="Selected" 
+                className="max-w-full h-auto rounded-md"
+              />
+              <div className="mt-2 space-y-2">
+                <Select 
+                  value={selectedRoomType} 
+                  onValueChange={setSelectedRoomType}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select room type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Living Room">Living Room</SelectItem>
+                    <SelectItem value="Bedroom">Bedroom</SelectItem>
+                    <SelectItem value="Kitchen">Kitchen</SelectItem>
+                    <SelectItem value="Bathroom">Bathroom</SelectItem>
+                    <SelectItem value="Balcony">Balcony</SelectItem>
+                    <SelectItem value="PG Common Area">PG Common Area</SelectItem>
+                    <SelectItem value="Study Area">Study Area</SelectItem>
+                    <SelectItem value="Exterior View">Exterior View</SelectItem>
+                    <SelectItem value="Hostel Room">Hostel Room</SelectItem>
+                    <SelectItem value="Room Photo">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  onClick={handleImageUpload} 
+                  className="w-full"
+                >
+                  Upload Image
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
         
         <div className="flex flex-col gap-2 md:gap-3 pt-3 md:pt-4 mt-4">
           <Button 

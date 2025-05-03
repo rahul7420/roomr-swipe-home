@@ -29,7 +29,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { uploadImage } from '@/services/uploadImage';
 // Import supabase client for DB reads and deletes
@@ -58,6 +57,7 @@ interface DBPhoto {
   id: string;
   photo_url: string;
   created_at: string;
+  room_type?: string | null;
 }
 
 const PhotoUpload: React.FC<PhotoUploadProps> = ({
@@ -73,8 +73,6 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [retryQueue, setRetryQueue] = useState<PhotoPreview[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // Fix: Remove this line as we're now importing useToast directly
-  // const { toast } = useToast();
   const isMobile = useIsMobile();
 
   const roomTypes = [
@@ -107,7 +105,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
     try {
       const { data, error } = await supabase
         .from("apartment_photos")
-        .select("id, photo_url, created_at")
+        .select("id, photo_url, created_at, room_type")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       
@@ -296,7 +294,28 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
           reader.readAsDataURL(photo.file);
         });
 
-        await uploadImage(dataUrl, userId);
+        // Upload the image
+        const publicUrl = await uploadImage(dataUrl, userId);
+        
+        // After successful upload to storage, update the DB record with room_type
+        if (publicUrl) {
+          // Find the newly inserted record by photo_url
+          const { data, error } = await supabase
+            .from("apartment_photos")
+            .select("id")
+            .eq("photo_url", publicUrl)
+            .eq("user_id", userId)
+            .single();
+            
+          if (data && photo.room) {
+            // Update the room_type field
+            await supabase
+              .from("apartment_photos")
+              .update({ room_type: photo.room })
+              .eq("id", data.id);
+          }
+        }
+        
         uploadedCount++;
       } catch (error: any) {
         failedCount++;
@@ -505,6 +524,11 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                 alt={`Apartment photo ${index + 1}`}
                 className="h-full w-full object-cover"
               />
+              {photo.room_type && (
+                <div className="absolute bottom-0 left-0 w-full p-2 bg-gradient-to-t from-black/70 to-transparent">
+                  <p className="text-white text-xs">{photo.room_type}</p>
+                </div>
+              )}
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Button
                   variant="destructive"

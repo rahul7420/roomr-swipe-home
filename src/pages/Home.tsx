@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +12,7 @@ import { Apartment } from '@/components/ApartmentCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
+import { Badge } from '@/components/ui/badge';
 
 // Updated mock data for Indian student apartments
 const mockApartments: Apartment[] = [
@@ -94,6 +96,7 @@ interface ApartmentPhoto {
   photo_url: string;
   user_id: string;
   created_at: string;
+  room_type?: string | null;
 }
 
 const Home = () => {
@@ -218,12 +221,17 @@ const Home = () => {
                 <CarouselItem key={photo.id} className="md:basis-1/2 lg:basis-1/3">
                   <div className="p-1">
                     <Card className="overflow-hidden">
-                      <CardContent className="p-0">
+                      <CardContent className="p-0 relative">
                         <img 
                           src={photo.photo_url} 
-                          alt="Apartment" 
+                          alt={photo.room_type || "Apartment"} 
                           className="w-full h-[200px] object-cover"
                         />
+                        {photo.room_type && (
+                          <div className="absolute bottom-0 left-0 w-full p-2 bg-gradient-to-t from-black/70 to-transparent">
+                            <p className="text-white text-sm font-medium">{photo.room_type}</p>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
